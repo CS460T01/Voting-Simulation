@@ -11,7 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class Main extends Application {
+public class VoteFormGUI extends Application {
 
     @Override
     public void start(Stage primaryStage) {
@@ -73,11 +73,16 @@ public class Main extends Application {
         CheckBox option3 = new CheckBox("WRITE IN");
         option3.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         option3.setMaxWidth(Double.MAX_VALUE);
+        TextField writeInField = new TextField();
+        writeInField.setPromptText("Enter candidate name...");
+        writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+        writeInField.setVisible(false);
 
         option1.setOnAction(e -> {
             if (option1.isSelected()) {
                 option2.setSelected(false);
                 option3.setSelected(false);
+                writeInField.setVisible(false);
             }
         });
 
@@ -85,13 +90,9 @@ public class Main extends Application {
             if (option2.isSelected()) {
                 option1.setSelected(false);
                 option3.setSelected(false);
+                writeInField.setVisible(false);
             }
         });
-
-        TextField writeInField = new TextField();
-        writeInField.setPromptText("Enter candidate name...");
-        writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
-        writeInField.setVisible(false);
 
         option3.setOnAction(e -> {
             if (option3.isSelected()) {
