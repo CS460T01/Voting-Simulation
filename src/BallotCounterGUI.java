@@ -28,7 +28,7 @@ public class BallotCounterGUI extends Application {
         VBox headerBox = new VBox(5);
         headerBox.setAlignment(Pos.CENTER);
         headerBox.setFillWidth(true);
-        headerBox.setStyle("-fx-border-color: white; -fx-padding: 5px;");
+        headerBox.setStyle("-fx-border-color: white; -fx-padding: 10px; -fx-border-width: 3px;");
 
         Label headerTitle = new Label("Header");
         headerTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
@@ -42,7 +42,7 @@ public class BallotCounterGUI extends Application {
         voteCounterBox.setAlignment(Pos.CENTER);
         voteCounterBox.setFillWidth(true);
         voteCounterBox.setMinHeight(400);
-        voteCounterBox.setStyle("-fx-border-color: white; -fx-padding: 5px;");
+        voteCounterBox.setStyle("-fx-border-color: white; -fx-border-width: 3px; -fx-padding: 10px;");
 
         Label titleLabel = new Label("Total Votes:");
         titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
