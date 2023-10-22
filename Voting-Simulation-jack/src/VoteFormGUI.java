@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class VoteFormGUI extends Application {
-//testing
+//testingg
     @Override
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
