@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -12,15 +13,60 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class VoteFormGUI extends Application {
-//testing
+    VBox contentBox;
+    int currentPage;
+
     @Override
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
-        VBox contentBox = new VBox(5);
+        contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
-        //contentBox.setMinHeight(800);
         contentBox.setFillWidth(true);
 
+        createGovernorPage();
+
+        HBox buttonBox = new HBox();
+        Button prevButton = new Button("Previous");
+        prevButton.setStyle("-fx-font-size: 20px;");
+        Button nextButton = new Button("Next");
+        nextButton.setStyle("-fx-font-size: 20px;");
+        HBox.setHgrow(prevButton, javafx.scene.layout.Priority.ALWAYS);
+        HBox.setHgrow(nextButton, javafx.scene.layout.Priority.ALWAYS);
+        prevButton.setMaxWidth(Double.MAX_VALUE);
+        nextButton.setMaxWidth(Double.MAX_VALUE);
+        buttonBox.getChildren().addAll(prevButton, nextButton);
+
+        nextButton.setOnAction(e -> createPresidentPage());
+        // Add functionality for prevButton as needed
+
+        ScrollPane scrollPane = new ScrollPane(contentBox);
+        scrollPane.setFitToWidth(true);
+        root.setCenter(scrollPane);
+        root.setBottom(buttonBox);
+
+        Scene scene = new Scene(root, 600, 700);
+        primaryStage.setTitle("Ballot");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private void createGovernorPage() {
+        contentBox.getChildren().clear();
+
+        VBox headerDescriptionBox = createHeader("For Governor", "(Vote for One)");
+        VBox optionBox = createOptionsBox();
+        contentBox.getChildren().addAll(headerDescriptionBox, optionBox);
+    }
+
+    private void createPresidentPage() {
+        contentBox.getChildren().clear();
+
+        VBox headerDescriptionBox = createHeader("For President", "(Vote for One)");
+        VBox optionBox = createOptionsBox();
+        contentBox.getChildren().addAll(headerDescriptionBox, optionBox);
+    }
+
+    private VBox createHeader(String position, String instructions) {
         VBox headerDescriptionBox = new VBox(5);
         headerDescriptionBox.setAlignment(Pos.CENTER);
         headerDescriptionBox.setFillWidth(true);
@@ -49,20 +95,25 @@ public class VoteFormGUI extends Application {
         headerDescriptionBox.setSpacing(10);
         headerDescriptionBox.getChildren().addAll(headerTitle, descriptionBox);
 
-        VBox optionBox = new VBox();
         VBox candidateLabelBox = new VBox();
-        Label canidateLabel = new Label("For Governor");
-        Label labelDirections = new Label("(Vote for One)");
+        Label candidateLabel = new Label(position);
+        Label labelDirections = new Label(instructions);
 
-        canidateLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        candidateLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
         labelDirections.setStyle("-fx-font-size: 20px;");
 
         candidateLabelBox.setAlignment(Pos.CENTER);
         candidateLabelBox.setMaxWidth(Double.MAX_VALUE);
         candidateLabelBox.setStyle("-fx-border-color: black;");
-        candidateLabelBox.getChildren().addAll(canidateLabel, labelDirections);
+        candidateLabelBox.getChildren().addAll(candidateLabel, labelDirections);
 
+        headerDescriptionBox.getChildren().add(candidateLabelBox);
 
+        return headerDescriptionBox;
+    }
+
+    private VBox createOptionsBox() {
+        VBox optionBox = new VBox();
 
         CheckBox option1 = new CheckBox("CANDIDATE 1");
         option1.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
@@ -104,28 +155,9 @@ public class VoteFormGUI extends Application {
             }
         });
 
-        optionBox.getChildren().addAll(candidateLabelBox, option1, option2, option3, writeInField);
+        optionBox.getChildren().addAll(option1, option2, option3, writeInField);
 
-
-        HBox buttonBox = new HBox();
-        Button prevButton = new Button("Previous");
-        prevButton.setStyle("-fx-font-size: 20px;");
-        Button nextButton = new Button("Next");
-        nextButton.setStyle("-fx-font-size: 20px;");
-        HBox.setHgrow(prevButton, javafx.scene.layout.Priority.ALWAYS);
-        HBox.setHgrow(nextButton, javafx.scene.layout.Priority.ALWAYS);
-        prevButton.setMaxWidth(Double.MAX_VALUE);
-        nextButton.setMaxWidth(Double.MAX_VALUE);
-        buttonBox.getChildren().addAll(prevButton, nextButton);
-
-        contentBox.getChildren().addAll(headerDescriptionBox, optionBox);
-        root.setCenter(contentBox);
-        root.setBottom(buttonBox);
-
-        Scene scene = new Scene(root, 600, 700);
-        primaryStage.setTitle("Ballot");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        return optionBox;
     }
 
     public static void main(String[] args) {
