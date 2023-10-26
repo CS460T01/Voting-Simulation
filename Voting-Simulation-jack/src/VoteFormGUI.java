@@ -6,7 +6,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class VoteFormGUI extends Application {
@@ -32,9 +35,10 @@ public class VoteFormGUI extends Application {
         currentPage = 1;
 
         HBox buttonBox = new HBox();
-        Button prevButton = new Button("Previous");
+
+        prevButton = new Button("Previous");
         prevButton.setStyle("-fx-font-size: 20px;");
-        Button nextButton = new Button("Next");
+        nextButton = new Button("Next");
         nextButton.setStyle("-fx-font-size: 20px;");
         HBox.setHgrow(prevButton, javafx.scene.layout.Priority.ALWAYS);
         HBox.setHgrow(nextButton, javafx.scene.layout.Priority.ALWAYS);
@@ -47,7 +51,7 @@ public class VoteFormGUI extends Application {
         submitButton.setVisible(false);
         submitButton.setOnAction(e -> handleSubmit());
 
-        buttonBox.getChildren().addAll(prevButton, submitButton, nextButton);
+        buttonBox.getChildren().addAll(prevButton, nextButton);
 
         prevButton.setOnAction(e -> {
             if (currentPage == 2) {
@@ -57,28 +61,21 @@ public class VoteFormGUI extends Application {
                 createPresidentPage();
                 currentPage = 2;
                 nextButton.setText("Next");
-            } else if (currentPage == 4) {
-                createLastPage(); // Assuming createLastPage creates the content for the last candidate
-                currentPage = 3;
-                nextButton.setText("Submit");
             }
         });
 
         nextButton.setOnAction(e -> {
+
             if (currentPage == 1) {
                 saveSelection("Governor");
                 createPresidentPage();
                 currentPage = 2;
             } else if (currentPage == 2) {
                 saveSelection("President");
-                createLastPage(); // Assuming createLastPage creates the content for the last candidate
-                currentPage = 3;
-            } else if (currentPage == 3) {
-                saveSelection("LastCandidate"); // Replace "LastCandidate" with your actual last candidate's position
                 createSubmitPrompt();
-                currentPage = 4;
+                currentPage = 3;
                 nextButton.setText("Submit");
-            } else if (currentPage == 4) {
+            } else if (currentPage == 3) {
                 handleSubmit();
             }
         });
@@ -113,7 +110,6 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().addAll(headerDescriptionBox, presidentOptions);
         restoreSelections("President");
     }
-
 
 
     private VBox createOptionsBox(String position) {
@@ -172,7 +168,6 @@ public class VoteFormGUI extends Application {
         return optionBox;
     }
 
-
     private void saveSelection(String position) {
         VBox options = optionElements.get(position);
         if (options != null) {
@@ -184,17 +179,18 @@ public class VoteFormGUI extends Application {
                             TextField writeInField = (TextField) options.getChildren().get(3); // Assuming the TextField is the next node
                             if (!writeInField.getText().isEmpty()) {
                                 selections.put(position, writeInField.getText());
+                                return;
                             }
                         } else {
                             selections.put(position, checkBox.getText());
+                            return;
                         }
-                        return;
                     }
                 }
             }
         }
+        selections.remove(position); // Remove the selection if no option is selected
     }
-
 
 
     private VBox createHeader(String position, String instructions) {
@@ -243,15 +239,20 @@ public class VoteFormGUI extends Application {
         return headerDescriptionBox;
     }
 
-    private void createLastPage() {
-        // Logic to create the last page of your voting process
-    }
-
     private void handleSubmit() {
         System.out.println("Voting Results:");
-        for (Map.Entry<String, String> entry : selections.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue());
+        List<String> positions = Arrays.asList("Governor", "President"); // Add all the positions here
+        for (String position : positions) {
+            if (selections.containsKey(position)) {
+                System.out.println(position + ": " + selections.get(position));
+            } else {
+                System.out.println(position + ": blank");
+            }
         }
+
+        prevButton.setDisable(true);
+        nextButton.setDisable(true);
+        submitButton.setDisable(true);
     }
 
     private void restoreSelections(String position) {
