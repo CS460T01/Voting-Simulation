@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 
 public class CheckinGUI extends Application {
 
-    private Register register;
+    private final Register register;
 
     public static void main(String[] args) {
         launch(args);
