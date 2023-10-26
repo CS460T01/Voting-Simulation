@@ -23,7 +23,8 @@ public class VoteFormGUI extends Application {
         contentBox.setPadding(new Insets(10));
         contentBox.setFillWidth(true);
 
-        createGovernorPage();
+        createGovernorPage(); // Start at the Governor page
+        currentPage = 1;
 
         HBox buttonBox = new HBox();
         Button prevButton = new Button("Previous");
@@ -36,8 +37,21 @@ public class VoteFormGUI extends Application {
         nextButton.setMaxWidth(Double.MAX_VALUE);
         buttonBox.getChildren().addAll(prevButton, nextButton);
 
-        nextButton.setOnAction(e -> createPresidentPage());
-        // Add functionality for prevButton as needed
+        nextButton.setOnAction(e -> {
+            if (currentPage == 1) {
+                createPresidentPage();
+                currentPage = 2;
+            }
+            // You can add more pages here if needed
+        });
+
+        prevButton.setOnAction(e -> {
+            if (currentPage == 2) {
+                createGovernorPage();
+                currentPage = 1;
+            }
+            // You can add functionality to go back to more pages here if needed
+        });
 
         ScrollPane scrollPane = new ScrollPane(contentBox);
         scrollPane.setFitToWidth(true);
