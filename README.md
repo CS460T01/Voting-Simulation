@@ -1,4 +1,5 @@
 # Voting-Simulation Team 01
+## This is a voting simulation for the State of New Mexico.
 
 ## Members:
 - Marina Seheon (Manager)
