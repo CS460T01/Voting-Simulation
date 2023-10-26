@@ -18,7 +18,7 @@ public class VoteFormGUI extends Application {
         BorderPane root = new BorderPane();
         VBox contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
-        contentBox.setMinHeight(800);
+        //contentBox.setMinHeight(800);
         contentBox.setFillWidth(true);
 
         VBox headerDescriptionBox = new VBox(5);
@@ -122,7 +122,7 @@ public class VoteFormGUI extends Application {
         root.setCenter(contentBox);
         root.setBottom(buttonBox);
 
-        Scene scene = new Scene(root, 600, 1000);
+        Scene scene = new Scene(root, 600, 700);
         primaryStage.setTitle("Ballot");
         primaryStage.setScene(scene);
         primaryStage.show();
