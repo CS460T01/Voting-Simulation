@@ -14,6 +14,9 @@ public class VoteFormGUI extends Application {
     int currentPage;
     Map<String, String> selections = new HashMap<>();
     Button submitButton;
+    Button prevButton;
+    Button nextButton;
+    VBox submitPromptBox;
 
     Map<String, VBox> optionElements = new HashMap<>();
 
@@ -50,8 +53,15 @@ public class VoteFormGUI extends Application {
             if (currentPage == 2) {
                 createGovernorPage();
                 currentPage = 1;
+            } else if (currentPage == 3) {
+                createPresidentPage();
+                currentPage = 2;
+                nextButton.setText("Next");
+            } else if (currentPage == 4) {
+                createLastPage(); // Assuming createLastPage creates the content for the last candidate
+                currentPage = 3;
+                nextButton.setText("Submit");
             }
-            // You can add functionality to go back to more pages here if needed
         });
 
         nextButton.setOnAction(e -> {
@@ -61,10 +71,15 @@ public class VoteFormGUI extends Application {
                 currentPage = 2;
             } else if (currentPage == 2) {
                 saveSelection("President");
-                createLastPage(); // Assuming this is your last page
+                createLastPage(); // Assuming createLastPage creates the content for the last candidate
                 currentPage = 3;
-                nextButton.setVisible(false);
-                submitButton.setVisible(true);
+            } else if (currentPage == 3) {
+                saveSelection("LastCandidate"); // Replace "LastCandidate" with your actual last candidate's position
+                createSubmitPrompt();
+                currentPage = 4;
+                nextButton.setText("Submit");
+            } else if (currentPage == 4) {
+                handleSubmit();
             }
         });
 
@@ -260,6 +275,22 @@ public class VoteFormGUI extends Application {
                 }
             }
         }
+    }
+
+    private void createSubmitPrompt() {
+        contentBox.getChildren().clear();
+
+        submitPromptBox = new VBox(20);
+        submitPromptBox.setAlignment(Pos.CENTER);
+        submitPromptBox.setFillWidth(true);
+        submitPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+        submitPromptBox.setMaxWidth(Double.MAX_VALUE);
+
+        Label promptLabel = new Label("Submit Votes?");
+        promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+        submitPromptBox.getChildren().add(promptLabel);
+
+        contentBox.getChildren().add(submitPromptBox);
     }
 
     public static void main(String[] args) {
