@@ -9,9 +9,14 @@ public class Register implements Serializable {
         loadFromFile();
     }
 
-    public String registerVoter(String name) {
+    public String registerVoter(String name, String ssn) {
+        if (isSSNRegistered(ssn)) {
+            System.out.println("SSN already registered.");
+            return null;
+        }
+
         String voterID = String.format("%05d", voterIDCounter++);
-        Voter voter = new Voter(voterID, name);
+        Voter voter = new Voter(voterID, name, ssn);
         registeredVoters.put(voterID, voter);
         saveToFile();
         return voterID;
@@ -27,10 +32,28 @@ public class Register implements Serializable {
         }
     }
 
+    public String getVoterIDByNameAndSSN(String name, String ssn) {
+        for (Voter voter : registeredVoters.values()) {
+            if (voter.getName().equalsIgnoreCase(name) && voter.getSSN().equals(ssn)) {
+                return voter.getVoterID();
+            }
+        }
+        return null;
+    }
+
     public void printRegisteredVoters() {
         for (Map.Entry<String, Voter> entry : registeredVoters.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue().getName());
+            System.out.println(entry.getKey() + ": " + entry.getValue().getName() + ", SSN: " + entry.getValue().getSSN());
         }
+    }
+
+    private boolean isSSNRegistered(String ssn) {
+        for (Voter voter : registeredVoters.values()) {
+            if (voter.getSSN().equals(ssn)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Voter getVoter(String voterID) {

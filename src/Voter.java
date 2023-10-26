@@ -3,11 +3,13 @@ import java.io.Serializable;
 public class Voter implements Serializable {
     private final String voterID;
     private final String name;
+    private final String ssn;
     private boolean hasVoted;
 
-    public Voter(String voterID, String name) {
+    public Voter(String voterID, String name, String ssn) {
         this.voterID = voterID;
         this.name = name;
+        this.ssn = ssn;
         this.hasVoted = false;
     }
 
@@ -17,6 +19,10 @@ public class Voter implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public String getSSN() {
+        return ssn;
     }
 
     public boolean getHasVoted() {
