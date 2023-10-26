@@ -6,7 +6,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class VoteFormGUI extends Application {
@@ -14,8 +17,11 @@ public class VoteFormGUI extends Application {
     int currentPage;
     Map<String, String> selections = new HashMap<>();
     Button submitButton;
+    Button prevButton;
+    Button nextButton;
+    VBox submitPromptBox;
 
-    Map<String, Map<String, Node>> optionElements = new HashMap<>();
+    Map<String, VBox> optionElements = new HashMap<>();
 
     @Override
     public void start(Stage primaryStage) {
@@ -29,9 +35,10 @@ public class VoteFormGUI extends Application {
         currentPage = 1;
 
         HBox buttonBox = new HBox();
-        Button prevButton = new Button("Previous");
+
+        prevButton = new Button("Previous");
         prevButton.setStyle("-fx-font-size: 20px;");
-        Button nextButton = new Button("Next");
+        nextButton = new Button("Next");
         nextButton.setStyle("-fx-font-size: 20px;");
         HBox.setHgrow(prevButton, javafx.scene.layout.Priority.ALWAYS);
         HBox.setHgrow(nextButton, javafx.scene.layout.Priority.ALWAYS);
@@ -44,27 +51,32 @@ public class VoteFormGUI extends Application {
         submitButton.setVisible(false);
         submitButton.setOnAction(e -> handleSubmit());
 
-        buttonBox.getChildren().addAll(prevButton, submitButton, nextButton);
+        buttonBox.getChildren().addAll(prevButton, nextButton);
 
         prevButton.setOnAction(e -> {
             if (currentPage == 2) {
                 createGovernorPage();
                 currentPage = 1;
+            } else if (currentPage == 3) {
+                createPresidentPage();
+                currentPage = 2;
+                nextButton.setText("Next");
             }
-            // You can add functionality to go back to more pages here if needed
         });
 
         nextButton.setOnAction(e -> {
+
             if (currentPage == 1) {
                 saveSelection("Governor");
                 createPresidentPage();
                 currentPage = 2;
             } else if (currentPage == 2) {
                 saveSelection("President");
-                createLastPage(); // Assuming this is your last page
+                createSubmitPrompt();
                 currentPage = 3;
-                nextButton.setVisible(false);
-                submitButton.setVisible(true);
+                nextButton.setText("Submit");
+            } else if (currentPage == 3) {
+                handleSubmit();
             }
         });
 
@@ -83,49 +95,43 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().clear();
 
         VBox headerDescriptionBox = createHeader("For Governor", "(Vote for One)");
-        Map<String, Node> governorOptions = createOptionsBox();
-        optionElements.put("Governor", governorOptions);
+        VBox governorOptions = createOptionsBox("Governor");
 
-        VBox optionBox = new VBox();
-        optionBox.getChildren().addAll(governorOptions.values());
-
-        contentBox.getChildren().addAll(headerDescriptionBox, optionBox);
+        contentBox.getChildren().addAll(headerDescriptionBox, governorOptions);
+        restoreSelections("Governor");
     }
 
     private void createPresidentPage() {
         contentBox.getChildren().clear();
 
-
         VBox headerDescriptionBox = createHeader("For President", "(Vote for One)");
-        Map<String, Node> presidentOptions = createOptionsBox();
-        optionElements.put("President", presidentOptions);
+        VBox presidentOptions = createOptionsBox("President");
 
-        VBox optionBox = new VBox();
-        optionBox.getChildren().addAll(presidentOptions.values());
-
-        contentBox.getChildren().addAll(headerDescriptionBox, optionBox);
-
+        contentBox.getChildren().addAll(headerDescriptionBox, presidentOptions);
+        restoreSelections("President");
     }
 
 
-    private Map<String, Node> createOptionsBox() {
+    private VBox createOptionsBox(String position) {
 
-        Map<String, Node> options = new HashMap<>();
+        if (optionElements.containsKey(position)) {
+            return optionElements.get(position);
+        }
+
+        VBox optionBox = new VBox(10);
 
         CheckBox option1 = new CheckBox("CANDIDATE 1");
-        options.put("CANDIDATE 1", option1);
         option1.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         option1.setMaxWidth(Double.MAX_VALUE);
 
         CheckBox option2 = new CheckBox("CANDIDATE 2");
-        options.put("CANDIDATE 2", option2);
         option2.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         option2.setMaxWidth(Double.MAX_VALUE);
 
         CheckBox option3 = new CheckBox("WRITE IN");
-        options.put("WRITE IN", option3);
         option3.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         option3.setMaxWidth(Double.MAX_VALUE);
+
         TextField writeInField = new TextField();
         writeInField.setPromptText("Enter candidate name...");
         writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
@@ -157,34 +163,35 @@ public class VoteFormGUI extends Application {
             }
         });
 
-        VBox optionBox = new VBox(10);
         optionBox.getChildren().addAll(option1, option2, option3, writeInField);
-        options.put("Option Box", optionBox);
-        //optionBox.getChildren().addAll(option1, option2, option3, writeInField);
-
-        return options;
+        optionElements.put(position, optionBox);
+        return optionBox;
     }
 
     private void saveSelection(String position) {
-        Map<String, Node> options = optionElements.get(position);
+        VBox options = optionElements.get(position);
         if (options != null) {
-            for (Map.Entry<String, Node> entry : options.entrySet()) {
-                if (entry.getValue() instanceof CheckBox) {
-                    CheckBox checkBox = (CheckBox) entry.getValue();
+            for (Node node : options.getChildren()) {
+                if (node instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) node;
                     if (checkBox.isSelected()) {
-                        selections.put(position, entry.getKey());
-                        return;
-                    }
-                } else if (entry.getValue() instanceof TextField) {
-                    TextField textField = (TextField) entry.getValue();
-                    if (!textField.getText().isEmpty()) {
-                        selections.put(position, "WRITE IN: " + textField.getText());
-                        return;
+                        if ("WRITE IN".equals(checkBox.getText())) {
+                            TextField writeInField = (TextField) options.getChildren().get(3); // Assuming the TextField is the next node
+                            if (!writeInField.getText().isEmpty()) {
+                                selections.put(position, writeInField.getText());
+                                return;
+                            }
+                        } else {
+                            selections.put(position, checkBox.getText());
+                            return;
+                        }
                     }
                 }
             }
         }
+        selections.remove(position); // Remove the selection if no option is selected
     }
+
 
     private VBox createHeader(String position, String instructions) {
         VBox headerDescriptionBox = new VBox(5);
@@ -232,15 +239,59 @@ public class VoteFormGUI extends Application {
         return headerDescriptionBox;
     }
 
-    private void createLastPage() {
-        // Logic to create the last page of your voting process
-    }
-
     private void handleSubmit() {
         System.out.println("Voting Results:");
-        for (Map.Entry<String, String> entry : selections.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue());
+        List<String> positions = Arrays.asList("Governor", "President"); // Add all the positions here
+        for (String position : positions) {
+            if (selections.containsKey(position)) {
+                System.out.println(position + ": " + selections.get(position));
+            } else {
+                System.out.println(position + ": blank");
+            }
         }
+
+        prevButton.setDisable(true);
+        nextButton.setDisable(true);
+        submitButton.setDisable(true);
+    }
+
+    private void restoreSelections(String position) {
+        VBox options = optionElements.get(position);
+        if (options != null && selections.containsKey(position)) {
+            String selectedOption = selections.get(position);
+            for (Node node : options.getChildren()) {
+                if (node instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) node;
+                    if (selectedOption.equals(checkBox.getText())) {
+                        checkBox.setSelected(true);
+                    }
+                } else if (node instanceof TextField) {
+                    TextField textField = (TextField) node;
+                    if (selectedOption.startsWith("WRITE IN: ")) {
+                        textField.setText(selectedOption.substring(10));
+                        textField.setVisible(true);
+                        // Assuming there's a write-in checkbox
+                        ((CheckBox) options.getChildren().get(2)).setSelected(true);
+                    }
+                }
+            }
+        }
+    }
+
+    private void createSubmitPrompt() {
+        contentBox.getChildren().clear();
+
+        submitPromptBox = new VBox(20);
+        submitPromptBox.setAlignment(Pos.CENTER);
+        submitPromptBox.setFillWidth(true);
+        submitPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+        submitPromptBox.setMaxWidth(Double.MAX_VALUE);
+
+        Label promptLabel = new Label("Submit Votes?");
+        promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+        submitPromptBox.getChildren().add(promptLabel);
+
+        contentBox.getChildren().add(submitPromptBox);
     }
 
     public static void main(String[] args) {
