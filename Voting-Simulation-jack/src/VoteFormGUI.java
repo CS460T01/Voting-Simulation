@@ -15,7 +15,7 @@ public class VoteFormGUI extends Application {
     Map<String, String> selections = new HashMap<>();
     Button submitButton;
 
-    Map<String, Map<String, Node>> optionElements = new HashMap<>();
+    Map<String, VBox> optionElements = new HashMap<>();
 
     @Override
     public void start(Stage primaryStage) {
@@ -83,49 +83,39 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().clear();
 
         VBox headerDescriptionBox = createHeader("For Governor", "(Vote for One)");
-        Map<String, Node> governorOptions = createOptionsBox();
+        VBox governorOptions = createOptionsBox();
         optionElements.put("Governor", governorOptions);
 
-        VBox optionBox = new VBox();
-        optionBox.getChildren().addAll(governorOptions.values());
-
-        contentBox.getChildren().addAll(headerDescriptionBox, optionBox);
+        contentBox.getChildren().addAll(headerDescriptionBox, governorOptions);
     }
 
     private void createPresidentPage() {
         contentBox.getChildren().clear();
 
-
         VBox headerDescriptionBox = createHeader("For President", "(Vote for One)");
-        Map<String, Node> presidentOptions = createOptionsBox();
+        VBox presidentOptions = createOptionsBox();
         optionElements.put("President", presidentOptions);
 
-        VBox optionBox = new VBox();
-        optionBox.getChildren().addAll(presidentOptions.values());
-
-        contentBox.getChildren().addAll(headerDescriptionBox, optionBox);
-
+        contentBox.getChildren().addAll(headerDescriptionBox, presidentOptions);
     }
 
 
-    private Map<String, Node> createOptionsBox() {
 
-        Map<String, Node> options = new HashMap<>();
+    private VBox createOptionsBox() {
+        VBox optionBox = new VBox(10);
 
         CheckBox option1 = new CheckBox("CANDIDATE 1");
-        options.put("CANDIDATE 1", option1);
         option1.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         option1.setMaxWidth(Double.MAX_VALUE);
 
         CheckBox option2 = new CheckBox("CANDIDATE 2");
-        options.put("CANDIDATE 2", option2);
         option2.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         option2.setMaxWidth(Double.MAX_VALUE);
 
         CheckBox option3 = new CheckBox("WRITE IN");
-        options.put("WRITE IN", option3);
         option3.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         option3.setMaxWidth(Double.MAX_VALUE);
+
         TextField writeInField = new TextField();
         writeInField.setPromptText("Enter candidate name...");
         writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
@@ -157,26 +147,23 @@ public class VoteFormGUI extends Application {
             }
         });
 
-        VBox optionBox = new VBox(10);
         optionBox.getChildren().addAll(option1, option2, option3, writeInField);
-        options.put("Option Box", optionBox);
-        //optionBox.getChildren().addAll(option1, option2, option3, writeInField);
-
-        return options;
+        return optionBox;
     }
 
+
     private void saveSelection(String position) {
-        Map<String, Node> options = optionElements.get(position);
+        VBox options = optionElements.get(position);
         if (options != null) {
-            for (Map.Entry<String, Node> entry : options.entrySet()) {
-                if (entry.getValue() instanceof CheckBox) {
-                    CheckBox checkBox = (CheckBox) entry.getValue();
+            for (Node node : options.getChildren()) {
+                if (node instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) node;
                     if (checkBox.isSelected()) {
-                        selections.put(position, entry.getKey());
+                        selections.put(position, checkBox.getText());
                         return;
                     }
-                } else if (entry.getValue() instanceof TextField) {
-                    TextField textField = (TextField) entry.getValue();
+                } else if (node instanceof TextField) {
+                    TextField textField = (TextField) node;
                     if (!textField.getText().isEmpty()) {
                         selections.put(position, "WRITE IN: " + textField.getText());
                         return;
@@ -185,6 +172,7 @@ public class VoteFormGUI extends Application {
             }
         }
     }
+
 
     private VBox createHeader(String position, String instructions) {
         VBox headerDescriptionBox = new VBox(5);
