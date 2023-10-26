@@ -83,25 +83,30 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().clear();
 
         VBox headerDescriptionBox = createHeader("For Governor", "(Vote for One)");
-        VBox governorOptions = createOptionsBox();
-        optionElements.put("Governor", governorOptions);
+        VBox governorOptions = createOptionsBox("Governor");
 
         contentBox.getChildren().addAll(headerDescriptionBox, governorOptions);
+        restoreSelections("Governor");
     }
 
     private void createPresidentPage() {
         contentBox.getChildren().clear();
 
         VBox headerDescriptionBox = createHeader("For President", "(Vote for One)");
-        VBox presidentOptions = createOptionsBox();
-        optionElements.put("President", presidentOptions);
+        VBox presidentOptions = createOptionsBox("President");
 
         contentBox.getChildren().addAll(headerDescriptionBox, presidentOptions);
+        restoreSelections("President");
     }
 
 
 
-    private VBox createOptionsBox() {
+    private VBox createOptionsBox(String position) {
+
+        if (optionElements.containsKey(position)) {
+            return optionElements.get(position);
+        }
+
         VBox optionBox = new VBox(10);
 
         CheckBox option1 = new CheckBox("CANDIDATE 1");
@@ -148,6 +153,7 @@ public class VoteFormGUI extends Application {
         });
 
         optionBox.getChildren().addAll(option1, option2, option3, writeInField);
+        optionElements.put(position, optionBox);
         return optionBox;
     }
 
@@ -159,19 +165,21 @@ public class VoteFormGUI extends Application {
                 if (node instanceof CheckBox) {
                     CheckBox checkBox = (CheckBox) node;
                     if (checkBox.isSelected()) {
-                        selections.put(position, checkBox.getText());
-                        return;
-                    }
-                } else if (node instanceof TextField) {
-                    TextField textField = (TextField) node;
-                    if (!textField.getText().isEmpty()) {
-                        selections.put(position, "WRITE IN: " + textField.getText());
+                        if ("WRITE IN".equals(checkBox.getText())) {
+                            TextField writeInField = (TextField) options.getChildren().get(3); // Assuming the TextField is the next node
+                            if (!writeInField.getText().isEmpty()) {
+                                selections.put(position, writeInField.getText());
+                            }
+                        } else {
+                            selections.put(position, checkBox.getText());
+                        }
                         return;
                     }
                 }
             }
         }
     }
+
 
 
     private VBox createHeader(String position, String instructions) {
@@ -228,6 +236,29 @@ public class VoteFormGUI extends Application {
         System.out.println("Voting Results:");
         for (Map.Entry<String, String> entry : selections.entrySet()) {
             System.out.println(entry.getKey() + ": " + entry.getValue());
+        }
+    }
+
+    private void restoreSelections(String position) {
+        VBox options = optionElements.get(position);
+        if (options != null && selections.containsKey(position)) {
+            String selectedOption = selections.get(position);
+            for (Node node : options.getChildren()) {
+                if (node instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) node;
+                    if (selectedOption.equals(checkBox.getText())) {
+                        checkBox.setSelected(true);
+                    }
+                } else if (node instanceof TextField) {
+                    TextField textField = (TextField) node;
+                    if (selectedOption.startsWith("WRITE IN: ")) {
+                        textField.setText(selectedOption.substring(10));
+                        textField.setVisible(true);
+                        // Assuming there's a write-in checkbox
+                        ((CheckBox) options.getChildren().get(2)).setSelected(true);
+                    }
+                }
+            }
         }
     }
 
