@@ -2,9 +2,20 @@ public class TestRegistration {
     public static void main(String[] args) {
         Register voterRegistry = new Register();
 
-        String generatedVoterID = voterRegistry.registerVoter("John Doe");
-        System.out.println("Generated Voter ID: " + generatedVoterID);
-        String generatedVoterID2 = voterRegistry.registerVoter("John Doe");
-        System.out.println("Generated Voter ID: " + generatedVoterID2);
+        voterRegistry.registerVoter("John Doe");
+        voterRegistry.registerVoter("Jane Doe");
+        voterRegistry.registerVoter("John Smith");
+        voterRegistry.registerVoter("Jane Smith");
+        voterRegistry.registerVoter("John Doe");
+        voterRegistry.printRegisteredVoters();
+
+        boolean success = voterRegistry.removeVoter("00002");
+        if (success) {
+            System.out.println("Voter removed successfully.");
+        } else {
+            System.out.println("No voter found with the given voterID.");
+        }
+
+        voterRegistry.printRegisteredVoters();
     }
 }
