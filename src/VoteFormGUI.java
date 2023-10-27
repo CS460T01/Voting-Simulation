@@ -254,6 +254,7 @@ public class VoteFormGUI extends Application {
             }
         }
 
+
         prevButton.setDisable(true);
         nextButton.setDisable(true);
         submitButton.setDisable(true);
