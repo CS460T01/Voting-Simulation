@@ -5,6 +5,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.util.Arrays;
@@ -90,6 +91,8 @@ public class VoteFormGUI extends Application {
         primaryStage.setTitle("Ballot");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        showVoterIdDialog(primaryStage);
     }
 
     private void createGovernorPage() {
@@ -294,6 +297,37 @@ public class VoteFormGUI extends Application {
 
         contentBox.getChildren().add(submitPromptBox);
     }
+
+    private void showVoterIdDialog(Stage primaryStage) {
+        Stage dialogStage = new Stage();
+        dialogStage.initModality(Modality.APPLICATION_MODAL);
+        dialogStage.initOwner(primaryStage);
+        VBox dialogVBox = new VBox(20);
+        dialogVBox.setPadding(new Insets(10));
+
+        TextField voterIdField = new TextField();
+        voterIdField.setPromptText("Enter Voter ID");
+        Button submitButton = new Button("Submit");
+        Label errorLabel = new Label();
+        errorLabel.setTextFill(javafx.scene.paint.Color.RED);
+
+        submitButton.setOnAction(e -> {
+            String voterId = voterIdField.getText();
+            if (voterId.matches("\\d{5}")) { // Check if voter ID is exactly 5 digits long
+                dialogStage.close();
+                primaryStage.show();
+            } else {
+                errorLabel.setText("Invalid Voter ID. Please enter a 5 digit ID.");
+            }
+        });
+
+        dialogVBox.getChildren().addAll(new Label("Please Enter Your 5-Digit Voter ID:"), voterIdField, submitButton, errorLabel);
+        Scene dialogScene = new Scene(dialogVBox, 300, 200);
+        dialogStage.setScene(dialogScene);
+        dialogStage.setTitle("Voter ID Validation");
+        dialogStage.showAndWait();
+    }
+
 
     public static void main(String[] args) {
         launch(args);
