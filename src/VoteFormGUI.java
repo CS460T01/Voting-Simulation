@@ -12,10 +12,7 @@ import com.google.gson.GsonBuilder;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class VoteFormGUI extends Application {
     VBox contentBox;
@@ -249,24 +246,26 @@ public class VoteFormGUI extends Application {
 
     private void handleSubmit() {
         System.out.println("Voting Results:");
-        List<String> positions = Arrays.asList("Governor", "President"); // Add all the positions here
 
-        // Prepare a map to store the results in a structured way
-        Map<String, Object> results = new HashMap<>();
+        BallotResult ballotResult = new BallotResult();
 
+        List<String> positions = Arrays.asList("Governor", "President");
         for (String position : positions) {
+            PositionResult positionResult = new PositionResult();
+            positionResult.Candidates.addAll(getCandidates(position));
             if (selections.containsKey(position)) {
                 System.out.println(position + ": " + selections.get(position));
-                results.put(position, selections.get(position));
+                positionResult.Voter_Choice = selections.get(position);
             } else {
                 System.out.println(position + ": blank");
-                results.put(position, "blank");
+                positionResult.Voter_Choice = "blank";
             }
+            ballotResult.Ballot.put(position, positionResult);
         }
 
-        // Convert the results map to a JSON string
+        // Convert the results object to a JSON string
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(results);
+        String json = gson.toJson(ballotResult);
 
         // Save the JSON string to a file
         try (FileWriter file = new FileWriter("votingResults.json")) {
@@ -351,6 +350,24 @@ public class VoteFormGUI extends Application {
         dialogStage.showAndWait();
     }
 
+    private static class BallotResult {
+        Map<String, PositionResult> Ballot = new HashMap<>();
+    }
+
+    private static class PositionResult {
+        List<String> Candidates = new ArrayList<>();
+        String Voter_Choice;
+    }
+
+    private List<String> getCandidates(String position) {
+        // Here, you need to return the list of candidates for each position.
+        // This is a simplified example. You should modify it according to your actual needs.
+        Map<String, List<String>> candidates = new HashMap<>();
+        candidates.put("Governor", Arrays.asList("CANDIDATE 1", "CANDIDATE 2"));
+        candidates.put("President", Arrays.asList("CANDIDATE 1", "CANDIDATE 2"));
+
+        return candidates.getOrDefault(position, Collections.emptyList());
+    }
 
     public static void main(String[] args) {
         launch(args);
