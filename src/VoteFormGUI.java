@@ -7,7 +7,11 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -246,14 +250,32 @@ public class VoteFormGUI extends Application {
     private void handleSubmit() {
         System.out.println("Voting Results:");
         List<String> positions = Arrays.asList("Governor", "President"); // Add all the positions here
+
+        // Prepare a map to store the results in a structured way
+        Map<String, Object> results = new HashMap<>();
+
         for (String position : positions) {
             if (selections.containsKey(position)) {
                 System.out.println(position + ": " + selections.get(position));
+                results.put(position, selections.get(position));
             } else {
                 System.out.println(position + ": blank");
+                results.put(position, "blank");
             }
         }
 
+        // Convert the results map to a JSON string
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(results);
+
+        // Save the JSON string to a file
+        try (FileWriter file = new FileWriter("votingResults.json")) {
+            file.write(json);
+            System.out.println("Results saved to votingResults.json");
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving the results to a file.");
+            e.printStackTrace();
+        }
 
         prevButton.setDisable(true);
         nextButton.setDisable(true);
