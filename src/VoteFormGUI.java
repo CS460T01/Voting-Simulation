@@ -9,6 +9,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -33,8 +35,7 @@ public class VoteFormGUI extends Application {
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
         contentBox.setFillWidth(true);
-
-        createGovernorPage(); // Start at the Governor page
+        createVoterIdPage(primaryStage);
         currentPage = 1;
 
         HBox buttonBox = new HBox();
@@ -54,7 +55,13 @@ public class VoteFormGUI extends Application {
         submitButton.setVisible(false);
         submitButton.setOnAction(e -> handleSubmit());
 
+        prevButton.setVisible(false);
+        prevButton.setDisable(true);
+        nextButton.setVisible(false);
+        nextButton.setDisable(true);
+
         buttonBox.getChildren().addAll(prevButton, nextButton);
+
 
         prevButton.setOnAction(e -> {
             if (currentPage == 2) {
@@ -93,7 +100,7 @@ public class VoteFormGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        showVoterIdDialog(primaryStage);
+        //showVoterIdDialog(primaryStage);
     }
 
     private void createGovernorPage() {
@@ -360,14 +367,79 @@ public class VoteFormGUI extends Application {
     }
 
     private List<String> getCandidates(String position) {
-        // Here, you need to return the list of candidates for each position.
-        // This is a simplified example. You should modify it according to your actual needs.
+
         Map<String, List<String>> candidates = new HashMap<>();
         candidates.put("Governor", Arrays.asList("CANDIDATE 1", "CANDIDATE 2"));
         candidates.put("President", Arrays.asList("CANDIDATE 1", "CANDIDATE 2"));
 
         return candidates.getOrDefault(position, Collections.emptyList());
     }
+
+    private void createVoterIdPage(Stage primaryStage) {
+        contentBox.getChildren().clear();
+
+        VBox voterIdBox = new VBox(20);
+        voterIdBox.setAlignment(Pos.CENTER);
+        voterIdBox.setFillWidth(true);
+        voterIdBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+        voterIdBox.setMaxWidth(Double.MAX_VALUE);
+
+        // Create an ImageView and set the Bernalillo County logo image
+        ImageView logoImageView = new ImageView(new Image("bernalillo_county_logo.png"));
+        logoImageView.setFitHeight(350);  // Set the height of the logo
+        logoImageView.setPreserveRatio(true);  // Preserve the aspect ratio
+        logoImageView.setSmooth(true);  // Enable smooth resizing
+        logoImageView.setCache(true);  // Cache the rendered image for faster performance
+
+        TextField voterIdField = new TextField();
+        voterIdField.setPromptText("Enter Voter ID");
+        voterIdField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+        voterIdField.setMaxWidth(Double.MAX_VALUE);
+
+        Button submitButton = new Button("Submit");
+        submitButton.setStyle("-fx-font-size: 20px;");
+        submitButton.setMaxWidth(Double.MAX_VALUE);
+
+        Label errorLabel = new Label();
+        errorLabel.setTextFill(javafx.scene.paint.Color.RED);
+        errorLabel.setStyle("-fx-font-size: 20px;");
+
+        submitButton.setOnAction(e -> {
+            String voterId = voterIdField.getText();
+            if (voterId.matches("\\d{5}")) { // Check if voter ID is exactly 5 digits long
+                createGovernorPage(); // If valid, proceed to the governor page
+                currentPage = 1;
+                updateButtonVisibility();
+
+            } else {
+                errorLabel.setText("Invalid Voter ID. Please enter a 5 digit ID.");
+            }
+        });
+
+        // Add the logo and the other components to the VBox
+        voterIdBox.getChildren().addAll(logoImageView, new Label("Please Enter Your 5-Digit Voter ID:"), voterIdField, submitButton, errorLabel);
+        contentBox.getChildren().add(voterIdBox);
+    }
+
+    private void updateButtonVisibility() {
+        if (currentPage == 1) {
+            prevButton.setVisible(true);
+            prevButton.setDisable(false);
+            nextButton.setVisible(true);
+            nextButton.setDisable(false);
+        } else if (currentPage == 2) {
+            prevButton.setVisible(true);
+            prevButton.setDisable(false);
+            nextButton.setVisible(true);
+            nextButton.setDisable(false);
+        } else if (currentPage == 3) {
+            prevButton.setVisible(true);
+            prevButton.setDisable(false);
+            nextButton.setVisible(false); // Hide the Next button on the submit page
+            nextButton.setDisable(true); // Disable the Next button on the submit page
+        }
+    }
+
 
     public static void main(String[] args) {
         launch(args);
