@@ -5,12 +5,16 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 public class VoteFormGUI extends Application {
     VBox contentBox;
@@ -31,8 +35,7 @@ public class VoteFormGUI extends Application {
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
         contentBox.setFillWidth(true);
-
-        createGovernorPage(); // Start at the Governor page
+        createVoterIdPage(primaryStage);
         currentPage = 1;
 
         HBox buttonBox = new HBox();
@@ -52,7 +55,13 @@ public class VoteFormGUI extends Application {
         submitButton.setVisible(false);
         submitButton.setOnAction(e -> handleSubmit());
 
+        prevButton.setVisible(false);
+        prevButton.setDisable(true);
+        nextButton.setVisible(false);
+        nextButton.setDisable(true);
+
         buttonBox.getChildren().addAll(prevButton, nextButton);
+
 
         prevButton.setOnAction(e -> {
             if (currentPage == 2) {
@@ -90,6 +99,8 @@ public class VoteFormGUI extends Application {
         primaryStage.setTitle("Ballot");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        //showVoterIdDialog(primaryStage);
     }
 
     private void createGovernorPage() {
@@ -242,13 +253,34 @@ public class VoteFormGUI extends Application {
 
     private void handleSubmit() {
         System.out.println("Voting Results:");
-        List<String> positions = Arrays.asList("Governor", "President"); // Add all the positions here
+
+        BallotResult ballotResult = new BallotResult();
+
+        List<String> positions = Arrays.asList("Governor", "President");
         for (String position : positions) {
+            PositionResult positionResult = new PositionResult();
+            positionResult.Candidates.addAll(getCandidates(position));
             if (selections.containsKey(position)) {
                 System.out.println(position + ": " + selections.get(position));
+                positionResult.Voter_Choice = selections.get(position);
             } else {
                 System.out.println(position + ": blank");
+                positionResult.Voter_Choice = "blank";
             }
+            ballotResult.Ballot.put(position, positionResult);
+        }
+
+        // Convert the results object to a JSON string
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(ballotResult);
+
+        // Save the JSON string to a file
+        try (FileWriter file = new FileWriter("votingResults.json")) {
+            file.write(json);
+            System.out.println("Results saved to votingResults.json");
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving the results to a file.");
+            e.printStackTrace();
         }
 
         prevButton.setDisable(true);
@@ -294,6 +326,120 @@ public class VoteFormGUI extends Application {
 
         contentBox.getChildren().add(submitPromptBox);
     }
+
+    private void showVoterIdDialog(Stage primaryStage) {
+        Stage dialogStage = new Stage();
+        dialogStage.initModality(Modality.APPLICATION_MODAL);
+        dialogStage.initOwner(primaryStage);
+        VBox dialogVBox = new VBox(20);
+        dialogVBox.setPadding(new Insets(10));
+
+        TextField voterIdField = new TextField();
+        voterIdField.setPromptText("Enter Voter ID");
+        Button submitButton = new Button("Submit");
+        Label errorLabel = new Label();
+        errorLabel.setTextFill(javafx.scene.paint.Color.RED);
+
+        submitButton.setOnAction(e -> {
+            String voterId = voterIdField.getText();
+            if (voterId.matches("\\d{5}")) { // Check if voter ID is exactly 5 digits long
+                dialogStage.close();
+                primaryStage.show();
+            } else {
+                errorLabel.setText("Invalid Voter ID. Please enter a 5 digit ID.");
+            }
+        });
+
+        dialogVBox.getChildren().addAll(new Label("Please Enter Your 5-Digit Voter ID:"), voterIdField, submitButton, errorLabel);
+        Scene dialogScene = new Scene(dialogVBox, 300, 200);
+        dialogStage.setScene(dialogScene);
+        dialogStage.setTitle("Voter ID Validation");
+        dialogStage.showAndWait();
+    }
+
+    private static class BallotResult {
+        Map<String, PositionResult> Ballot = new HashMap<>();
+    }
+
+    private static class PositionResult {
+        List<String> Candidates = new ArrayList<>();
+        String Voter_Choice;
+    }
+
+    private List<String> getCandidates(String position) {
+
+        Map<String, List<String>> candidates = new HashMap<>();
+        candidates.put("Governor", Arrays.asList("CANDIDATE 1", "CANDIDATE 2"));
+        candidates.put("President", Arrays.asList("CANDIDATE 1", "CANDIDATE 2"));
+
+        return candidates.getOrDefault(position, Collections.emptyList());
+    }
+
+    private void createVoterIdPage(Stage primaryStage) {
+        contentBox.getChildren().clear();
+
+        VBox voterIdBox = new VBox(20);
+        voterIdBox.setAlignment(Pos.CENTER);
+        voterIdBox.setFillWidth(true);
+        voterIdBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+        voterIdBox.setMaxWidth(Double.MAX_VALUE);
+
+        // Create an ImageView and set the Bernalillo County logo image
+        ImageView logoImageView = new ImageView(new Image("bernalillo_county_logo.png"));
+        logoImageView.setFitHeight(350);  // Set the height of the logo
+        logoImageView.setPreserveRatio(true);  // Preserve the aspect ratio
+        logoImageView.setSmooth(true);  // Enable smooth resizing
+        logoImageView.setCache(true);  // Cache the rendered image for faster performance
+
+        TextField voterIdField = new TextField();
+        voterIdField.setPromptText("Enter Voter ID");
+        voterIdField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+        voterIdField.setMaxWidth(Double.MAX_VALUE);
+
+        Button submitButton = new Button("Submit");
+        submitButton.setStyle("-fx-font-size: 20px;");
+        submitButton.setMaxWidth(Double.MAX_VALUE);
+
+        Label errorLabel = new Label();
+        errorLabel.setTextFill(javafx.scene.paint.Color.RED);
+        errorLabel.setStyle("-fx-font-size: 20px;");
+
+        submitButton.setOnAction(e -> {
+            String voterId = voterIdField.getText();
+            if (voterId.matches("\\d{5}")) { // Check if voter ID is exactly 5 digits long
+                createGovernorPage(); // If valid, proceed to the governor page
+                currentPage = 1;
+                updateButtonVisibility();
+
+            } else {
+                errorLabel.setText("Invalid Voter ID. Please enter a 5 digit ID.");
+            }
+        });
+
+        // Add the logo and the other components to the VBox
+        voterIdBox.getChildren().addAll(logoImageView, new Label("Please Enter Your 5-Digit Voter ID:"), voterIdField, submitButton, errorLabel);
+        contentBox.getChildren().add(voterIdBox);
+    }
+
+    private void updateButtonVisibility() {
+        if (currentPage == 1) {
+            prevButton.setVisible(true);
+            prevButton.setDisable(false);
+            nextButton.setVisible(true);
+            nextButton.setDisable(false);
+        } else if (currentPage == 2) {
+            prevButton.setVisible(true);
+            prevButton.setDisable(false);
+            nextButton.setVisible(true);
+            nextButton.setDisable(false);
+        } else if (currentPage == 3) {
+            prevButton.setVisible(true);
+            prevButton.setDisable(false);
+            nextButton.setVisible(false); // Hide the Next button on the submit page
+            nextButton.setDisable(true); // Disable the Next button on the submit page
+        }
+    }
+
 
     public static void main(String[] args) {
         launch(args);
