@@ -1,14 +1,20 @@
+import com.google.gson.Gson;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.FileReader;
+import java.io.IOException;
+
 public class BallotCounterGUI extends Application {
+    private Register register = new Register();
+    private static int voteCount = 0;
+    private Label voteLabel;
 
     public static void main(String[] args) {
         launch(args);
@@ -20,7 +26,7 @@ public class BallotCounterGUI extends Application {
 
         // Container for all content on the GUI
         VBox contentBox = new VBox(5);
-        contentBox.setPadding(new Insets(10));
+        contentBox.setPadding(new Insets(10 ));
         contentBox.setMinHeight(600);
         contentBox.setFillWidth(true);
 
@@ -48,8 +54,8 @@ public class BallotCounterGUI extends Application {
         titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
         titleLabel.setAlignment(Pos.CENTER);
 
-        int votes = 0;
-        Label voteLabel = new Label(String.valueOf(votes));
+        updateVoteCount();
+        voteLabel = new Label(String.valueOf(voteCount));
         voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
         voteLabel.setAlignment(Pos.CENTER);
 
@@ -63,4 +69,18 @@ public class BallotCounterGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+    public void updateVoteCount(){
+        Gson gson = new Gson();
+        VoteFormGUI.VoteData vote;
+        try (FileReader fileReader = new FileReader("voteCount.json")) {
+            vote = gson.fromJson(fileReader, VoteFormGUI.VoteData.class);
+        } catch (IOException e) {
+            System.out.println("An error occurred while reading the results from the file.");
+            e.printStackTrace();
+            vote = new VoteFormGUI.VoteData(); // Create a new instance if there's an error reading the file
+        }
+        voteCount = vote.getTotalVoteCounts();
+    }
+
+
 }

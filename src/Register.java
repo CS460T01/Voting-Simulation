@@ -79,4 +79,19 @@ public class Register implements Serializable {
             }
         }
     }
+    // Register.java
+    // Register.java
+    public boolean hasVoterVoted(String voterID) {
+        Voter voter = registeredVoters.get(voterID);
+        return voter != null && voter.getHasVoted();
+    }
+
+    public void markVoterAsVoted(String voterID) {
+        Voter voter = registeredVoters.get(voterID);
+        if (voter != null) {
+            voter.markAsVoted();
+            saveToFile();
+        }
+    }
+
 }
