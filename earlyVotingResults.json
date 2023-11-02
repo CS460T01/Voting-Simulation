@@ -1,0 +1,19 @@
+{
+  "Ballot": {
+    "Governor": {
+      "Candidates": [
+        "CANDIDATE 1",
+        "CANDIDATE 2"
+      ],
+      "Voter_Choice": "CANDIDATE 1"
+    },
+    "President": {
+      "Candidates": [
+        "CANDIDATE 1",
+        "CANDIDATE 2"
+      ],
+      "Voter_Choice": "CANDIDATE 2"
+    }
+  },
+  "provisional": false
+}
