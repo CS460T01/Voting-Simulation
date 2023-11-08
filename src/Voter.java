@@ -1,15 +1,20 @@
 import java.io.Serializable;
+import java.time.LocalDate;
 
 public class Voter implements Serializable {
     private final String voterID;
-    private final String name;
-    private final String ssn;
+    private final String fullName;
+    private final String address;
+    private final LocalDate dateOfBirth;
+    private final String ssnLastFour;
     private boolean hasVoted;
 
-    public Voter(String voterID, String name, String ssn) {
-        this.voterID = voterID;
-        this.name = name;
-        this.ssn = ssn;
+    public Voter(String fullName, String address, LocalDate dateOfBirth, String ssnLastFour) {
+        this.fullName = fullName;
+        this.address = address;
+        this.dateOfBirth = dateOfBirth;
+        this.ssnLastFour = ssnLastFour;
+        this.voterID = fullName + dateOfBirth + ssnLastFour;
         this.hasVoted = false;
     }
 
@@ -17,24 +22,34 @@ public class Voter implements Serializable {
         return voterID;
     }
 
-    public String getName() {
-        return name;
+    public String getFullName() {
+        return fullName;
     }
 
-    public String getSSN() {
-        return ssn;
+    public String getAddress() {
+        return address;
     }
 
-    public void markAsVoted() {
-        setHasVoted(true);
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
     }
 
+    public String getSsnLastFour() {
+        return ssnLastFour;
+    }
 
-    public boolean getHasVoted() {
+    public boolean hasVoted() {
         return hasVoted;
     }
 
-    public void setHasVoted(boolean hasVoted) {
-        this.hasVoted = hasVoted;
+    public void markAsVoted() {
+        this.hasVoted = true;
+    }
+
+    public boolean matches(String fullName, String address, LocalDate dob, String ssnLastFour) {
+        return this.fullName.equalsIgnoreCase(fullName) &&
+                this.address.equalsIgnoreCase(address) &&
+                this.dateOfBirth.equals(dob) &&
+                this.ssnLastFour.equals(ssnLastFour);
     }
 }
