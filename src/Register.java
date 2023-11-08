@@ -67,4 +67,10 @@ public class Register implements Serializable {
             }
         }
     }
+
+    public void printVoters() {
+        for (Voter voter : registeredVoters.values()) {
+            System.out.println(voter.getFullName() + " " + voter.getAddress() + " " + voter.getDateOfBirth() + " " + voter.getSsnLastFour() + " " + voter.hasVoted() + " " + voter.getVoterID());
+        }
+    }
 }
