@@ -87,6 +87,12 @@ public class CheckInGUI extends Application {
             String ssnLast4 = ssnTextField.getText();
             String dobString = dobTextField.getText();
             LocalDate dob = null;
+
+            if (firstName.isEmpty() || lastName.isEmpty() || address.isEmpty() || ssnLast4.isEmpty() || dobString.isEmpty()) {
+                actiontarget.setText("Please fill out all fields.");
+                return; // Exit the method if any field is empty
+            }
+
             try {
                 dob = LocalDate.parse(dobString, formatter);
             } catch (DateTimeParseException dtpe) {
