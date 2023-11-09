@@ -1,20 +1,18 @@
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -27,13 +25,11 @@ public class VoteFormGUI extends Application {
     Button prevButton;
     Button nextButton;
     VBox submitPromptBox;
-    private String voterID;
-    BallotCounterGUI ballotCounter = new BallotCounterGUI();
+    private String currentFontStyle = NORMAL_FONT_STYLE;
+
+    private static final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
+    private static final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
     Map<String, VBox> optionElements = new HashMap<>();
-
-    Register register = new Register();
-
-
 
     //testing this branch
 
@@ -105,7 +101,6 @@ public class VoteFormGUI extends Application {
         root.setCenter(scrollPane);
         root.setBottom(buttonBox);
 
-
         Scene scene = new Scene(root, 600, 700);
         primaryStage.setTitle("Ballot");
         primaryStage.setScene(scene);
@@ -122,6 +117,7 @@ public class VoteFormGUI extends Application {
 
         contentBox.getChildren().addAll(headerDescriptionBox, governorOptions);
         restoreSelections("Governor");
+        applyCurrentFontStyleToUI();
     }
 
     private void createPresidentPage() {
@@ -132,6 +128,8 @@ public class VoteFormGUI extends Application {
 
         contentBox.getChildren().addAll(headerDescriptionBox, presidentOptions);
         restoreSelections("President");
+        applyCurrentFontStyleToUI();
+
     }
 
 
@@ -221,25 +219,35 @@ public class VoteFormGUI extends Application {
         headerDescriptionBox.setAlignment(Pos.CENTER);
         headerDescriptionBox.setFillWidth(true);
 
+        // Define the default styles
+        String defaultTitleStyle = "-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;";
+        String defaultLabelStyle = "-fx-font-size: 20px; -fx-font-weight: bold;";
+        String defaultDescriptionStyle = "-fx-border-color: black; -fx-padding: 5px;";
+
+        // Apply either the default style or the currentFontStyle based on the current selection
+        String titleStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultTitleStyle;
+        String labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultLabelStyle;
+
         Label headerTitle = new Label("BERNALILLO COUNTY");
-        headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;");
+        headerTitle.setStyle(titleStyle);
         headerTitle.setAlignment(Pos.CENTER);
         headerTitle.setMaxWidth(Double.MAX_VALUE);
 
         VBox descriptionBox = new VBox(0);
         descriptionBox.setAlignment(Pos.CENTER);
         descriptionBox.setFillWidth(true);
-        descriptionBox.setStyle("-fx-border-color: black; -fx-padding: 5px;");
+        descriptionBox.setStyle(defaultDescriptionStyle);
         descriptionBox.setMaxWidth(Double.MAX_VALUE);
 
+        // Use the default font size for these labels since they are part of the static header
         Label line1 = new Label("OFFICIAL BALLOT");
-        line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+        line1.setStyle(defaultTitleStyle);
         Label line2 = new Label("OFFICIAL GENERAL ELECTION BALLOT");
-        line2.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        line2.setStyle(defaultLabelStyle);
         Label line3 = new Label("OF THE STATE OF NEW MEXICO");
-        line3.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        line3.setStyle(defaultLabelStyle);
         Label line4 = new Label("NOVEMBER 6, 2023");
-        line4.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        line4.setStyle(defaultLabelStyle);
         descriptionBox.getChildren().addAll(line1, line2, line3, line4);
 
         headerDescriptionBox.setSpacing(10);
@@ -247,10 +255,9 @@ public class VoteFormGUI extends Application {
 
         VBox candidateLabelBox = new VBox();
         Label candidateLabel = new Label(position);
+        candidateLabel.setStyle(labelStyle);
         Label labelDirections = new Label(instructions);
-
-        candidateLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
-        labelDirections.setStyle("-fx-font-size: 20px;");
+        labelDirections.setStyle(labelStyle);
 
         candidateLabelBox.setAlignment(Pos.CENTER);
         candidateLabelBox.setMaxWidth(Double.MAX_VALUE);
@@ -261,6 +268,7 @@ public class VoteFormGUI extends Application {
 
         return headerDescriptionBox;
     }
+
 
     private void handleSubmit() {
         System.out.println("Voting Results:");
@@ -293,30 +301,6 @@ public class VoteFormGUI extends Application {
             System.out.println("An error occurred while saving the results to a file.");
             e.printStackTrace();
         }
-
-        VoteData voteData;
-
-        try (FileReader fileReader = new FileReader("voteCount.json")) {
-            voteData = gson.fromJson(fileReader, VoteData.class);
-        } catch (IOException e) {
-            System.out.println("An error occurred while reading the results from the file.");
-            e.printStackTrace();
-            voteData = new VoteData(); // Create a new instance if there's an error reading the file
-        }
-
-        int currentCount = voteData.getTotalVoteCounts();
-        voteData.setTotalVoteCounts(currentCount+1);
-
-        String voteJson = gson.toJson(voteData);
-
-        try (FileWriter file = new FileWriter("voteCount.json")) {
-            file.write(voteJson);
-            System.out.println("Updated results saved to voteCount.json");
-        } catch (IOException e) {
-            System.out.println("An error occurred while saving the updated results to a file.");
-            e.printStackTrace();
-        }
-
 
         prevButton.setDisable(true);
         nextButton.setDisable(true);
@@ -371,7 +355,9 @@ public class VoteFormGUI extends Application {
 
         TextField voterIdField = new TextField();
         voterIdField.setPromptText("Enter Voter ID");
+        voterIdField.setStyle(currentFontStyle); // Use the current font style
         Button submitButton = new Button("Submit");
+        submitButton.setStyle(currentFontStyle); // Use the current font style
         Label errorLabel = new Label();
         errorLabel.setTextFill(javafx.scene.paint.Color.RED);
 
@@ -395,19 +381,6 @@ public class VoteFormGUI extends Application {
     private static class BallotResult {
         Map<String, PositionResult> Ballot = new HashMap<>();
     }
-
-    public static class VoteData {
-        private int totalVoteCounts;
-
-        public int getTotalVoteCounts() {
-            return totalVoteCounts;
-        }
-
-        public void setTotalVoteCounts(int totalVoteCounts) {
-            this.totalVoteCounts = totalVoteCounts;
-        }
-    }
-
 
     private static class PositionResult {
         List<String> Candidates = new ArrayList<>();
@@ -492,18 +465,28 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().clear();
 
         Label accessibilityLabel = new Label("Select Accessibility Options:");
-        accessibilityLabel.setStyle("-fx-font-size: 20px; -fx-padding: 10px;");
+        accessibilityLabel.setStyle(currentFontStyle); // Use the current font style
+
 
         CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
-        largerFontCheckbox.setStyle("-fx-font-size: 20px;");
+        largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
+        largerFontCheckbox.setSelected(currentFontStyle.equals(LARGE_FONT_STYLE)); // Set selected based on current style
+        largerFontCheckbox.setOnAction(e -> {
+            String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
+            updateFontSize(newStyle);
+        });
+
         CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
-        highContrastCheckbox.setStyle("-fx-font-size: 20px;");
+        highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
+
         CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
-        textToSpeechCheckbox.setStyle("-fx-font-size: 20px;");
+        textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
 
         Button confirmButton = new Button("Confirm");
-        confirmButton.setStyle("-fx-font-size: 20px;");
-        confirmButton.setMaxWidth(Double.MAX_VALUE);
+        confirmButton.setStyle(currentFontStyle); // Use the current font style
+        confirmButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        HBox.setHgrow(confirmButton, Priority.ALWAYS); // Make the button grow horizontally
+
         confirmButton.setOnAction(e -> {
             if (largerFontCheckbox.isSelected()) {
                 // Apply larger font settings across the UI
@@ -520,6 +503,38 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().addAll(accessibilityLabel, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
     }
 
+    private void updateFontSize(String fontSizeStyle) {
+        currentFontStyle = fontSizeStyle; // Update the current font style
+        applyCurrentFontStyleToUI(); // Apply the new font style to the UI
+    }
+
+    private void applyCurrentFontStyleToUI() {
+        // Update the style for buttons as an example
+        prevButton.setStyle(currentFontStyle);
+        nextButton.setStyle(currentFontStyle);
+        submitButton.setStyle(currentFontStyle);
+
+        // Apply the current font style to the options and headers
+        optionElements.values().forEach(optionBox -> updateFontSizeRecursive(optionBox, currentFontStyle));
+        // You might need additional lines here to update other parts of the UI
+    }
+    private void updateFontSizeRecursive(Pane parent, String fontSizeStyle) {
+        for (Node child : parent.getChildren()) {
+            if (child instanceof Text) {
+                ((Text) child).setStyle(fontSizeStyle);
+            } else if (child instanceof Label) {
+                ((Label) child).setStyle(fontSizeStyle);
+            } else if (child instanceof Button) {
+                ((Button) child).setStyle(fontSizeStyle);
+            } else if (child instanceof CheckBox) {
+                ((CheckBox) child).setStyle(fontSizeStyle);
+            } else if (child instanceof TextField) {
+                ((TextField) child).setStyle(fontSizeStyle);
+            } else if (child instanceof Pane) {
+                updateFontSizeRecursive((Pane) child, fontSizeStyle);
+            }
+        }
+    }
     public static void main(String[] args) {
         launch(args);
     }
