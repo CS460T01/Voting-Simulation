@@ -19,7 +19,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public class VoteFormGUI extends Application {
+public class EarlyVotingGUI extends Application {
     VBox contentBox;
     int currentPage;
     Map<String, String> selections = new HashMap<>();
@@ -32,6 +32,7 @@ public class VoteFormGUI extends Application {
     Map<String, VBox> optionElements = new HashMap<>();
 
     Register register = new Register();
+    Boolean isProvisional = false;
 
 
 
@@ -97,8 +98,6 @@ public class VoteFormGUI extends Application {
                 handleSubmit();
             }
         });
-
-        createAccessibilityOptionsPage(primaryStage);
 
         ScrollPane scrollPane = new ScrollPane(contentBox);
         scrollPane.setFitToWidth(true);
@@ -283,12 +282,12 @@ public class VoteFormGUI extends Application {
 
         // Convert the results object to a JSON string
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        ballotResult.provisional = isProvisional;
         String json = gson.toJson(ballotResult);
-
         // Save the JSON string to a file
-        try (FileWriter file = new FileWriter("votingResults.json")) {
+        try (FileWriter file = new FileWriter("earlyVotingResults.json")) {
             file.write(json);
-            System.out.println("Results saved to votingResults.json");
+            System.out.println("Results saved to earlyVotingResults.json");
         } catch (IOException e) {
             System.out.println("An error occurred while saving the results to a file.");
             e.printStackTrace();
@@ -394,6 +393,8 @@ public class VoteFormGUI extends Application {
 
     private static class BallotResult {
         Map<String, PositionResult> Ballot = new HashMap<>();
+        boolean provisional = false;
+
     }
 
     public static class VoteData {
@@ -448,6 +449,19 @@ public class VoteFormGUI extends Application {
         submitButton.setStyle("-fx-font-size: 20px;");
         submitButton.setMaxWidth(Double.MAX_VALUE);
 
+        Button noIdButton = new Button("No ID");
+        noIdButton.setStyle("-fx-font-size: 20px;");
+        noIdButton.setMaxWidth(Double.MAX_VALUE);
+        noIdButton.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "You will be voting using a provisional ballot.");
+            alert.showAndWait();
+            createGovernorPage();
+            isProvisional = true;
+            currentPage = 1;
+            updateButtonVisibility();
+        });
+
+
         Label errorLabel = new Label();
         errorLabel.setTextFill(javafx.scene.paint.Color.RED);
         errorLabel.setStyle("-fx-font-size: 20px;");
@@ -465,7 +479,8 @@ public class VoteFormGUI extends Application {
         });
 
         // Add the logo and the other components to the VBox
-        voterIdBox.getChildren().addAll(logoImageView, new Label("Please Enter Your 5-Digit Voter ID:"), voterIdField, submitButton, errorLabel);
+        voterIdBox.getChildren().addAll(logoImageView, new Label("Please Enter Your 5-Digit Voter ID:"), voterIdField, submitButton, noIdButton, errorLabel);
+
         contentBox.getChildren().add(voterIdBox);
     }
 
@@ -488,37 +503,6 @@ public class VoteFormGUI extends Application {
         }
     }
 
-    private void createAccessibilityOptionsPage(Stage primaryStage) {
-        contentBox.getChildren().clear();
-
-        Label accessibilityLabel = new Label("Select Accessibility Options:");
-        accessibilityLabel.setStyle("-fx-font-size: 20px; -fx-padding: 10px;");
-
-        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
-        largerFontCheckbox.setStyle("-fx-font-size: 20px;");
-        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
-        highContrastCheckbox.setStyle("-fx-font-size: 20px;");
-        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
-        textToSpeechCheckbox.setStyle("-fx-font-size: 20px;");
-
-        Button confirmButton = new Button("Confirm");
-        confirmButton.setStyle("-fx-font-size: 20px;");
-        confirmButton.setMaxWidth(Double.MAX_VALUE);
-        confirmButton.setOnAction(e -> {
-            if (largerFontCheckbox.isSelected()) {
-                // Apply larger font settings across the UI
-            }
-            if (highContrastCheckbox.isSelected()) {
-                // Apply high contrast settings across the UI
-            }
-            if (textToSpeechCheckbox.isSelected()) {
-                // Activate text to speech functionality
-            }
-            createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
-        });
-
-        contentBox.getChildren().addAll(accessibilityLabel, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
-    }
 
     public static void main(String[] args) {
         launch(args);
