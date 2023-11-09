@@ -90,6 +90,8 @@ public class VoteFormGUI extends Application {
             }
         });
 
+        createAccessibilityOptionsPage(primaryStage);
+
         ScrollPane scrollPane = new ScrollPane(contentBox);
         scrollPane.setFitToWidth(true);
         root.setCenter(scrollPane);
@@ -440,6 +442,37 @@ public class VoteFormGUI extends Application {
         }
     }
 
+    private void createAccessibilityOptionsPage(Stage primaryStage) {
+        contentBox.getChildren().clear();
+
+        Label accessibilityLabel = new Label("Select Accessibility Options:");
+        accessibilityLabel.setStyle("-fx-font-size: 20px; -fx-padding: 10px;");
+
+        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
+        largerFontCheckbox.setStyle("-fx-font-size: 20px;");
+        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
+        highContrastCheckbox.setStyle("-fx-font-size: 20px;");
+        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
+        textToSpeechCheckbox.setStyle("-fx-font-size: 20px;");
+
+        Button confirmButton = new Button("Confirm");
+        confirmButton.setStyle("-fx-font-size: 20px;");
+        confirmButton.setMaxWidth(Double.MAX_VALUE);
+        confirmButton.setOnAction(e -> {
+            if (largerFontCheckbox.isSelected()) {
+                // Apply larger font settings across the UI
+            }
+            if (highContrastCheckbox.isSelected()) {
+                // Apply high contrast settings across the UI
+            }
+            if (textToSpeechCheckbox.isSelected()) {
+                // Activate text to speech functionality
+            }
+            createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
+        });
+
+        contentBox.getChildren().addAll(accessibilityLabel, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
+    }
 
     public static void main(String[] args) {
         launch(args);
