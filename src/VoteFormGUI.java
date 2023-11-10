@@ -22,6 +22,7 @@ public class VoteFormGUI extends Application {
     Button prevButton;
     Button nextButton;
     VBox submitPromptBox;
+    VBox accessibilityPromptBox;
     HBox buttonBox;
     private String currentFontStyle = NORMAL_FONT_STYLE;
     List<Map.Entry<String, List<String>>> offices;
@@ -351,7 +352,7 @@ public class VoteFormGUI extends Application {
             promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
 
             submitButton = new Button("Submit");
-            submitButton.setStyle("-fx-font-size: 20px;");
+            submitButton.setStyle(currentFontStyle);
             submitButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             HBox.setHgrow(submitButton, Priority.ALWAYS);
             submitButton.setOnAction(e -> handleSubmit());
@@ -391,10 +392,16 @@ public class VoteFormGUI extends Application {
     private void createAccessibilityOptionsPage(Stage primaryStage) {
         contentBox.getChildren().clear();
         buttonBox.getChildren().clear();
+        Button confirmButton = new Button("Confirm");
+
+        accessibilityPromptBox = new VBox(20);
+        accessibilityPromptBox.setAlignment(Pos.CENTER);
+        accessibilityPromptBox.setFillWidth(true);
+        accessibilityPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+        accessibilityPromptBox.setMaxWidth(Double.MAX_VALUE);
 
         Label accessibilityLabel = new Label("Select Accessibility Options:");
-        accessibilityLabel.setStyle(currentFontStyle); // Use the current font style
-
+        accessibilityLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;"); // Use the current font style
 
         CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
         largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
@@ -410,7 +417,6 @@ public class VoteFormGUI extends Application {
         CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
         textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
 
-        Button confirmButton = new Button("Confirm");
         confirmButton.setStyle(currentFontStyle); // Use the current font style
         confirmButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         HBox.setHgrow(confirmButton, Priority.ALWAYS); // Make the button grow horizontally
@@ -437,7 +443,8 @@ public class VoteFormGUI extends Application {
             //createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
         });
 
-        contentBox.getChildren().addAll(accessibilityLabel, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
+        accessibilityPromptBox.getChildren().addAll(accessibilityLabel);
+        contentBox.getChildren().addAll(accessibilityPromptBox, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
         buttonBox.getChildren().add(confirmButton);
 
     }
