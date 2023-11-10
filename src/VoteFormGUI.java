@@ -22,6 +22,7 @@ public class VoteFormGUI extends Application {
     Button prevButton;
     Button nextButton;
     VBox submitPromptBox;
+    HBox buttonBox;
     private String currentFontStyle = NORMAL_FONT_STYLE;
     List<Map.Entry<String, List<String>>> offices;
 
@@ -40,7 +41,7 @@ public class VoteFormGUI extends Application {
         initializeOffices();
         currentPage = 1;
 
-        HBox buttonBox = new HBox();
+        buttonBox = new HBox();
 
         prevButton = new Button("Previous");
         prevButton.setStyle("-fx-font-size: 20px;");
@@ -67,25 +68,42 @@ public class VoteFormGUI extends Application {
 
 
         prevButton.setOnAction(e -> {
-            if (currentPage > 1) {
-                saveSelection(offices.get(currentPage - 1).getKey()); // Save current selections
-                createVotingPage(currentPage - 2); // Go to the previous page
+            System.out.println("Before Prev Action: " + currentPage);
+
+            if (currentPage == offices.size() + 1) {
+                // We are on the submit page and want to go back to the last voting page
+                currentPage = offices.size();
+                createVotingPage(currentPage - 1);
+            } else if (currentPage > 1) {
+                // We are on a regular voting page and want to go back to the previous one
+                saveSelection(offices.get(currentPage - 1).getKey());
+                currentPage -= 2; // We need to subtract 2 because createVotingPage will add 1 back
+                createVotingPage(currentPage);
             }
+
+            System.out.println("After Prev Action: " + currentPage);
+            updateButtonVisibility();
         });
 
-
         nextButton.setOnAction(e -> {
+            System.out.println("Before Next Action: " + currentPage);
+
             if (currentPage <= offices.size()) {
                 saveSelection(offices.get(currentPage - 1).getKey());
                 if (currentPage < offices.size()) {
-                    createVotingPage(currentPage); // Go to the next voting page
+                    createVotingPage(currentPage); // This will increment currentPage
                 } else {
-                    createSubmitPrompt(); // We're on the last page, show the submit prompt
+                    createSubmitPrompt();
+                    currentPage++; // Manually increment because createSubmitPrompt doesn't increment currentPage
                     submitButton.setVisible(true);
-                    nextButton.setVisible(false); // Hide the Next button on the submit page
+                    nextButton.setVisible(false);
                 }
             }
+
+            System.out.println("After Next Action: " + currentPage);
+            updateButtonVisibility();
         });
+
 
 
         createAccessibilityOptionsPage(primaryStage);
@@ -112,14 +130,21 @@ public class VoteFormGUI extends Application {
                     .forEach(node -> ((CheckBox) node).setSelected(false));
         }
     }
+
     private VBox createOptionsBox(String position, List<String> candidates) {
         VBox optionBox = new VBox(10);
+        TextField writeInField = new TextField();
+        writeInField.setPromptText("Enter candidate name...");
+        writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+        writeInField.setVisible(false);
 
         for (String candidate : candidates) {
             CheckBox checkBox = new CheckBox(candidate);
             checkBox.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
             checkBox.setMaxWidth(Double.MAX_VALUE);
-            checkBox.setOnAction(e -> handleCheckBoxAction(checkBox, optionBox));
+            checkBox.setOnAction(e -> {handleCheckBoxAction(checkBox, optionBox);
+                writeInField.setVisible(false);
+            });
             optionBox.getChildren().add(checkBox);
         }
 
@@ -129,10 +154,6 @@ public class VoteFormGUI extends Application {
         writeInOption.setMaxWidth(Double.MAX_VALUE);
         writeInOption.setOnAction(e -> handleCheckBoxAction(writeInOption, optionBox));
 
-        TextField writeInField = new TextField();
-        writeInField.setPromptText("Enter candidate name...");
-        writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
-        writeInField.setVisible(false);
 
         writeInOption.setOnAction(e -> {
             writeInField.setVisible(writeInOption.isSelected());
@@ -184,7 +205,6 @@ public class VoteFormGUI extends Application {
         }
     }
 
-
     private VBox createHeader(String position, String instructions) {
         VBox headerDescriptionBox = new VBox(5);
         headerDescriptionBox.setAlignment(Pos.CENTER);
@@ -200,7 +220,7 @@ public class VoteFormGUI extends Application {
         String labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultLabelStyle;
 
         Label headerTitle = new Label("BERNALILLO COUNTY");
-        headerTitle.setStyle(titleStyle);
+        headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;");
         headerTitle.setAlignment(Pos.CENTER);
         headerTitle.setMaxWidth(Double.MAX_VALUE);
 
@@ -212,7 +232,8 @@ public class VoteFormGUI extends Application {
 
         // Use the default font size for these labels since they are part of the static header
         Label line1 = new Label("OFFICIAL BALLOT");
-        line1.setStyle(defaultTitleStyle);
+        //line1.setStyle(defaultTitleStyle);
+        line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-padding: 10px;");
         Label line2 = new Label("OFFICIAL GENERAL ELECTION BALLOT");
         line2.setStyle(defaultLabelStyle);
         Label line3 = new Label("OF THE STATE OF NEW MEXICO");
@@ -239,7 +260,6 @@ public class VoteFormGUI extends Application {
 
         return headerDescriptionBox;
     }
-
 
     private void handleSubmit() {
         System.out.println("Voting Results:");
@@ -278,7 +298,6 @@ public class VoteFormGUI extends Application {
         submitButton.setDisable(true);
     }
 
-
     private void restoreSelections(String position) {
         VBox options = optionElements.get(position);
         if (options != null && selections.containsKey(position)) {
@@ -311,12 +330,10 @@ public class VoteFormGUI extends Application {
         }
     }
 
-
-
-
-
     private void createSubmitPrompt() {
         if (submitPromptBox == null) {
+
+
             submitPromptBox = new VBox(20);
             submitPromptBox.setAlignment(Pos.CENTER);
             submitPromptBox.setFillWidth(true);
@@ -357,7 +374,7 @@ public class VoteFormGUI extends Application {
             prevButton.setDisable(true);
             nextButton.setVisible(true);
             nextButton.setDisable(false);
-            //submitButton.setVisible(false);
+            submitButton.setVisible(false);
         }
         // Last page should be the submit page
         else if (currentPage == totalVotingPages + 1) {
@@ -365,7 +382,7 @@ public class VoteFormGUI extends Application {
             prevButton.setDisable(false);
             nextButton.setVisible(false);
             nextButton.setDisable(true);
-            //submitButton.setVisible(true);
+            submitButton.setVisible(true);
         }
         // Any page in between
         else {
@@ -373,13 +390,13 @@ public class VoteFormGUI extends Application {
             prevButton.setDisable(false);
             nextButton.setVisible(true);
             nextButton.setDisable(false);
-            //submitButton.setVisible(false);
+            submitButton.setVisible(false);
         }
     }
 
-
     private void createAccessibilityOptionsPage(Stage primaryStage) {
         contentBox.getChildren().clear();
+        buttonBox.getChildren().clear();
 
         Label accessibilityLabel = new Label("Select Accessibility Options:");
         accessibilityLabel.setStyle(currentFontStyle); // Use the current font style
@@ -418,10 +435,17 @@ public class VoteFormGUI extends Application {
             createVotingPage(0); // Navigate to the first voting page
             //currentPage = 1;
             updateButtonVisibility();
+            confirmButton.setVisible(false);
+            buttonBox.getChildren().clear();
+            buttonBox.getChildren().addAll(prevButton, nextButton); // Add back the navigation buttons
+            updateButtonVisibility(); // Make sure to update the visibility based on the current page
+
             //createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
         });
 
         contentBox.getChildren().addAll(accessibilityLabel, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
+        buttonBox.getChildren().add(confirmButton);
+
     }
 
     private void updateFontSize(String fontSizeStyle) {
@@ -459,10 +483,10 @@ public class VoteFormGUI extends Application {
 
     private void initializeOffices() {
         offices = new ArrayList<>();
-        offices.add(new AbstractMap.SimpleEntry<>("Governor", Arrays.asList("Michelle Lujan Grisham", "Susana Martinez")));
-        offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList("Tim Keller", "Jehiel Luciana", "Džejlana Avedis")));
-        offices.add(new AbstractMap.SimpleEntry<>("Senator", Arrays.asList("Ben Ray Lujan", "Martin Heinrich")));
-        offices.add(new AbstractMap.SimpleEntry<>("Dog", Arrays.asList("Husky", "Golden retriever", "German Shepard")));
+        offices.add(new AbstractMap.SimpleEntry<>("Governor", Arrays.asList("1","Michelle Lujan Grisham", "Susana Martinez")));
+        offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList("2","Tim Keller", "Jehiel Luciana", "Džejlana Avedis")));
+        offices.add(new AbstractMap.SimpleEntry<>("Senator", Arrays.asList("3","Ben Ray Lujan", "Martin Heinrich")));
+        offices.add(new AbstractMap.SimpleEntry<>("Dog", Arrays.asList("4","Husky", "Golden retriever", "German Shepard")));
         // Add more offices and candidates as needed
     }
 
@@ -482,6 +506,7 @@ public class VoteFormGUI extends Application {
         applyCurrentFontStyleToUI();
 
         currentPage = pageIndex + 1; // Update current page index
+        System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility(); // Update the visibility of navigation buttons
     }
 
