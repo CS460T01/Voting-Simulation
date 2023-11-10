@@ -64,7 +64,7 @@ public class VoteFormGUI extends Application {
         nextButton.setDisable(true);
 
 
-        buttonBox.getChildren().addAll(prevButton, nextButton);
+        buttonBox.getChildren().addAll(prevButton, nextButton, submitButton);
 
 
         prevButton.setOnAction(e -> {
@@ -74,6 +74,8 @@ public class VoteFormGUI extends Application {
                 // We are on the submit page and want to go back to the last voting page
                 currentPage = offices.size();
                 createVotingPage(currentPage - 1);
+                buttonBox.getChildren().clear();
+                buttonBox.getChildren().addAll(prevButton,nextButton);
             } else if (currentPage > 1) {
                 // We are on a regular voting page and want to go back to the previous one
                 saveSelection(offices.get(currentPage - 1).getKey());
@@ -92,11 +94,16 @@ public class VoteFormGUI extends Application {
                 saveSelection(offices.get(currentPage - 1).getKey());
                 if (currentPage < offices.size()) {
                     createVotingPage(currentPage); // This will increment currentPage
-                } else {
+                }
+
+                else {
                     createSubmitPrompt();
                     currentPage++; // Manually increment because createSubmitPrompt doesn't increment currentPage
-                    submitButton.setVisible(true);
-                    nextButton.setVisible(false);
+                    buttonBox.getChildren().clear();
+                    buttonBox.getChildren().addAll(prevButton,submitButton);
+                    //submitButton.setVisible(true);
+                    //nextButton.setVisible(false);
+                    updateButtonVisibility();
                 }
             }
 
@@ -345,10 +352,13 @@ public class VoteFormGUI extends Application {
 
             submitButton = new Button("Submit");
             submitButton.setStyle("-fx-font-size: 20px;");
-            submitButton.setMaxWidth(Double.MAX_VALUE);
+            submitButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            HBox.setHgrow(submitButton, Priority.ALWAYS);
             submitButton.setOnAction(e -> handleSubmit());
 
-            submitPromptBox.getChildren().addAll(promptLabel, submitButton);
+            submitPromptBox.getChildren().addAll(promptLabel);
+            buttonBox.getChildren().clear();
+            buttonBox.getChildren().addAll(prevButton,submitButton);
         }
 
         contentBox.getChildren().setAll(submitPromptBox); // Replace all children with submitPromptBox
@@ -365,34 +375,18 @@ public class VoteFormGUI extends Application {
     }
 
     private void updateButtonVisibility() {
-        // The number of voting pages is equal to the number of offices
         int totalVotingPages = offices.size();
 
-        // First page should be the accessibility options page
-        if (currentPage == 0) {
-            prevButton.setVisible(false);
-            prevButton.setDisable(true);
-            nextButton.setVisible(true);
-            nextButton.setDisable(false);
-            submitButton.setVisible(false);
-        }
-        // Last page should be the submit page
-        else if (currentPage == totalVotingPages + 1) {
-            prevButton.setVisible(true);
-            prevButton.setDisable(false);
-            nextButton.setVisible(false);
-            nextButton.setDisable(true);
-            submitButton.setVisible(true);
-        }
-        // Any page in between
-        else {
-            prevButton.setVisible(true);
-            prevButton.setDisable(false);
-            nextButton.setVisible(true);
-            nextButton.setDisable(false);
-            submitButton.setVisible(false);
-        }
+        prevButton.setVisible(currentPage > 0);
+        prevButton.setDisable(currentPage <= 0);
+
+        nextButton.setVisible(currentPage < totalVotingPages + 1);
+        nextButton.setDisable(currentPage >= totalVotingPages + 1);
+
+        // Display the Submit button on the last voting page or as per your logic
+        submitButton.setVisible(currentPage == totalVotingPages + 1);
     }
+
 
     private void createAccessibilityOptionsPage(Stage primaryStage) {
         contentBox.getChildren().clear();
