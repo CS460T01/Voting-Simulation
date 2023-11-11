@@ -464,6 +464,7 @@ public class VoteFormGUI extends Application {
         optionElements.values().forEach(optionBox -> updateFontSizeRecursive(optionBox, currentFontStyle));
         // You might need additional lines here to update other parts of the UI
     }
+
     private void updateFontSizeRecursive(Pane parent, String fontSizeStyle) {
         for (Node child : parent.getChildren()) {
             if (child instanceof Text) {
