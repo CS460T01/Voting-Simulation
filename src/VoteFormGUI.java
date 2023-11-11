@@ -1,25 +1,20 @@
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
+import javafx.scene.layout.*;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
-import java.io.FileReader;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
 public class VoteFormGUI extends Application {
+
     VBox contentBox;
     int currentPage;
     Map<String, String> selections = new HashMap<>();
@@ -27,15 +22,15 @@ public class VoteFormGUI extends Application {
     Button prevButton;
     Button nextButton;
     VBox submitPromptBox;
-    private String voterID;
-    BallotCounterGUI ballotCounter = new BallotCounterGUI();
+    VBox accessibilityPromptBox;
+    HBox buttonBox;
+    private String currentFontStyle = NORMAL_FONT_STYLE;
+    List<Map.Entry<String, List<String>>> offices;
+
+
+    private static final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
+    private static final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
     Map<String, VBox> optionElements = new HashMap<>();
-
-    Register register = new Register();
-
-
-
-    //testing this branch
 
     @Override
     public void start(Stage primaryStage) {
@@ -43,10 +38,11 @@ public class VoteFormGUI extends Application {
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
         contentBox.setFillWidth(true);
-        createVoterIdPage(primaryStage);
+        //createVoterIdPage(primaryStage);
+        initializeOffices();
         currentPage = 1;
 
-        HBox buttonBox = new HBox();
+        buttonBox = new HBox();
 
         prevButton = new Button("Previous");
         prevButton.setStyle("-fx-font-size: 20px;");
@@ -68,41 +64,64 @@ public class VoteFormGUI extends Application {
         nextButton.setVisible(false);
         nextButton.setDisable(true);
 
-        buttonBox.getChildren().addAll(prevButton, nextButton);
+
+        buttonBox.getChildren().addAll(prevButton, nextButton, submitButton);
 
 
         prevButton.setOnAction(e -> {
-            if (currentPage == 2) {
-                createGovernorPage();
-                currentPage = 1;
-            } else if (currentPage == 3) {
-                createPresidentPage();
-                currentPage = 2;
-                nextButton.setText("Next");
+            System.out.println("Before Prev Action: " + currentPage);
+
+            if (currentPage == offices.size() + 1) {
+                // We are on the submit page and want to go back to the last voting page
+                currentPage = offices.size();
+                createVotingPage(currentPage - 1);
+                buttonBox.getChildren().clear();
+                buttonBox.getChildren().addAll(prevButton,nextButton);
+            } else if (currentPage > 1) {
+                // We are on a regular voting page and want to go back to the previous one
+                saveSelection(offices.get(currentPage - 1).getKey());
+                currentPage -= 2; // We need to subtract 2 because createVotingPage will add 1 back
+                createVotingPage(currentPage);
             }
+
+            System.out.println("After Prev Action: " + currentPage);
+            updateButtonVisibility();
         });
 
         nextButton.setOnAction(e -> {
+            System.out.println("Before Next Action: " + currentPage);
 
-            if (currentPage == 1) {
-                saveSelection("Governor");
-                createPresidentPage();
-                currentPage = 2;
-            } else if (currentPage == 2) {
-                saveSelection("President");
-                createSubmitPrompt();
-                currentPage = 3;
-                nextButton.setText("Submit");
-            } else if (currentPage == 3) {
-                handleSubmit();
+            if (currentPage <= offices.size()) {
+                saveSelection(offices.get(currentPage - 1).getKey());
+                if (currentPage < offices.size()) {
+                    createVotingPage(currentPage); // This will increment currentPage
+                }
+
+                else {
+                    createSubmitPrompt();
+                    currentPage++; // Manually increment because createSubmitPrompt doesn't increment currentPage
+                    buttonBox.getChildren().clear();
+                    buttonBox.getChildren().addAll(prevButton,submitButton);
+                    //submitButton.setVisible(true);
+                    //nextButton.setVisible(false);
+                    updateButtonVisibility();
+                }
             }
+
+            System.out.println("After Next Action: " + currentPage);
+            updateButtonVisibility();
         });
+
+
+
+        createAccessibilityOptionsPage(primaryStage);
 
         ScrollPane scrollPane = new ScrollPane(contentBox);
         scrollPane.setFitToWidth(true);
         root.setCenter(scrollPane);
         root.setBottom(buttonBox);
 
+        //createVotingPage(0);
 
         Scene scene = new Scene(root, 600, 700);
         primaryStage.setTitle("Ballot");
@@ -112,112 +131,101 @@ public class VoteFormGUI extends Application {
         //showVoterIdDialog(primaryStage);
     }
 
-    private void createGovernorPage() {
-        contentBox.getChildren().clear();
-
-        VBox headerDescriptionBox = createHeader("For Governor", "(Vote for One)");
-        VBox governorOptions = createOptionsBox("Governor");
-
-        contentBox.getChildren().addAll(headerDescriptionBox, governorOptions);
-        restoreSelections("Governor");
-    }
-
-    private void createPresidentPage() {
-        contentBox.getChildren().clear();
-
-        VBox headerDescriptionBox = createHeader("For President", "(Vote for One)");
-        VBox presidentOptions = createOptionsBox("President");
-
-        contentBox.getChildren().addAll(headerDescriptionBox, presidentOptions);
-        restoreSelections("President");
-    }
-
-
-    private VBox createOptionsBox(String position) {
-
-        if (optionElements.containsKey(position)) {
-            return optionElements.get(position);
+    private void handleCheckBoxAction(CheckBox selectedCheckBox, VBox optionBox) {
+        if (selectedCheckBox.isSelected()) {
+            // Unselect other checkboxes
+            optionBox.getChildren().filtered(node -> node instanceof CheckBox && node != selectedCheckBox)
+                    .forEach(node -> ((CheckBox) node).setSelected(false));
         }
+    }
 
+    private VBox createOptionsBox(String position, List<String> candidates) {
         VBox optionBox = new VBox(10);
-
-        CheckBox option1 = new CheckBox("CANDIDATE 1");
-        option1.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
-        option1.setMaxWidth(Double.MAX_VALUE);
-
-        CheckBox option2 = new CheckBox("CANDIDATE 2");
-        option2.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
-        option2.setMaxWidth(Double.MAX_VALUE);
-
-        CheckBox option3 = new CheckBox("WRITE IN");
-        option3.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
-        option3.setMaxWidth(Double.MAX_VALUE);
-
         TextField writeInField = new TextField();
         writeInField.setPromptText("Enter candidate name...");
         writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         writeInField.setVisible(false);
 
-        option1.setOnAction(e -> {
-            if (option1.isSelected()) {
-                option2.setSelected(false);
-                option3.setSelected(false);
+        for (String candidate : candidates) {
+            CheckBox checkBox = new CheckBox(candidate);
+            checkBox.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+            checkBox.setMaxWidth(Double.MAX_VALUE);
+            checkBox.setOnAction(e -> {handleCheckBoxAction(checkBox, optionBox);
                 writeInField.setVisible(false);
+            });
+            optionBox.getChildren().add(checkBox);
+        }
+
+        // Add the write-in option
+        CheckBox writeInOption = new CheckBox("Write-in");
+        writeInOption.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+        writeInOption.setMaxWidth(Double.MAX_VALUE);
+        writeInOption.setOnAction(e -> handleCheckBoxAction(writeInOption, optionBox));
+
+
+        writeInOption.setOnAction(e -> {
+            writeInField.setVisible(writeInOption.isSelected());
+            if (writeInOption.isSelected()) {
+                // Unselect other checkboxes
+                optionBox.getChildren().filtered(node -> node instanceof CheckBox && node != writeInOption)
+                        .forEach(node -> ((CheckBox) node).setSelected(false));
             }
         });
 
-        option2.setOnAction(e -> {
-            if (option2.isSelected()) {
-                option1.setSelected(false);
-                option3.setSelected(false);
-                writeInField.setVisible(false);
-            }
-        });
+        optionBox.getChildren().addAll(writeInOption, writeInField);
 
-        option3.setOnAction(e -> {
-            if (option3.isSelected()) {
-                option1.setSelected(false);
-                option2.setSelected(false);
-                writeInField.setVisible(true);
-            } else {
-                writeInField.setVisible(false);
-            }
-        });
-
-        optionBox.getChildren().addAll(option1, option2, option3, writeInField);
+        // Save the write-in TextField in a map if needed for later retrieval
         optionElements.put(position, optionBox);
+
         return optionBox;
     }
 
     private void saveSelection(String position) {
         VBox options = optionElements.get(position);
         if (options != null) {
+            // Initialize the write-in checkbox and text field references
+            CheckBox writeInCheckBox = null;
+            TextField writeInField = null;
+
+            // Find the write-in checkbox and text field
             for (Node node : options.getChildren()) {
-                if (node instanceof CheckBox) {
-                    CheckBox checkBox = (CheckBox) node;
-                    if (checkBox.isSelected()) {
-                        if ("WRITE IN".equals(checkBox.getText())) {
-                            TextField writeInField = (TextField) options.getChildren().get(3); // Assuming the TextField is the next node
-                            if (!writeInField.getText().isEmpty()) {
-                                selections.put(position, writeInField.getText());
-                                return;
-                            }
-                        } else {
-                            selections.put(position, checkBox.getText());
-                            return;
-                        }
-                    }
+                if (node instanceof CheckBox && "Write-in".equals(((CheckBox) node).getText())) {
+                    writeInCheckBox = (CheckBox) node;
+                } else if (node instanceof TextField) {
+                    writeInField = (TextField) node;
                 }
             }
-        }
-        selections.remove(position); // Remove the selection if no option is selected
-    }
 
+            // Check if the write-in checkbox is selected and the text field is not empty
+            if (writeInCheckBox != null && writeInCheckBox.isSelected() && writeInField != null && !writeInField.getText().isEmpty()) {
+                selections.put(position, "Write-in: " + writeInField.getText());
+            } else {
+                // If not, find which checkbox is selected
+                for (Node node : options.getChildren()) {
+                    if (node instanceof CheckBox && ((CheckBox) node).isSelected()) {
+                        selections.put(position, ((CheckBox) node).getText());
+                        return;
+                    }
+                }
+                // If no checkboxes are selected, remove the position from the selections
+                selections.remove(position);
+            }
+        }
+    }
 
     private VBox createHeader(String position, String instructions) {
         VBox headerDescriptionBox = new VBox(5);
         headerDescriptionBox.setAlignment(Pos.CENTER);
         headerDescriptionBox.setFillWidth(true);
+
+        // Define the default styles
+        String defaultTitleStyle = "-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;";
+        String defaultLabelStyle = "-fx-font-size: 20px; -fx-font-weight: bold;";
+        String defaultDescriptionStyle = "-fx-border-color: black; -fx-padding: 5px;";
+
+        // Apply either the default style or the currentFontStyle based on the current selection
+        String titleStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultTitleStyle;
+        String labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultLabelStyle;
 
         Label headerTitle = new Label("BERNALILLO COUNTY");
         headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;");
@@ -227,17 +235,19 @@ public class VoteFormGUI extends Application {
         VBox descriptionBox = new VBox(0);
         descriptionBox.setAlignment(Pos.CENTER);
         descriptionBox.setFillWidth(true);
-        descriptionBox.setStyle("-fx-border-color: black; -fx-padding: 5px;");
+        descriptionBox.setStyle(defaultDescriptionStyle);
         descriptionBox.setMaxWidth(Double.MAX_VALUE);
 
+        // Use the default font size for these labels since they are part of the static header
         Label line1 = new Label("OFFICIAL BALLOT");
-        line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+        //line1.setStyle(defaultTitleStyle);
+        line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-padding: 10px;");
         Label line2 = new Label("OFFICIAL GENERAL ELECTION BALLOT");
-        line2.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        line2.setStyle(defaultLabelStyle);
         Label line3 = new Label("OF THE STATE OF NEW MEXICO");
-        line3.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        line3.setStyle(defaultLabelStyle);
         Label line4 = new Label("NOVEMBER 6, 2023");
-        line4.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        line4.setStyle(defaultLabelStyle);
         descriptionBox.getChildren().addAll(line1, line2, line3, line4);
 
         headerDescriptionBox.setSpacing(10);
@@ -245,10 +255,9 @@ public class VoteFormGUI extends Application {
 
         VBox candidateLabelBox = new VBox();
         Label candidateLabel = new Label(position);
+        candidateLabel.setStyle(labelStyle);
         Label labelDirections = new Label(instructions);
-
-        candidateLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
-        labelDirections.setStyle("-fx-font-size: 20px;");
+        labelDirections.setStyle(labelStyle);
 
         candidateLabelBox.setAlignment(Pos.CENTER);
         candidateLabelBox.setMaxWidth(Double.MAX_VALUE);
@@ -265,18 +274,18 @@ public class VoteFormGUI extends Application {
 
         BallotResult ballotResult = new BallotResult();
 
-        List<String> positions = Arrays.asList("Governor", "President");
-        for (String position : positions) {
+        for (Map.Entry<String, List<String>> officeEntry : offices) {
+            String position = officeEntry.getKey();
+            List<String> candidatesList = officeEntry.getValue();
+
             PositionResult positionResult = new PositionResult();
-            positionResult.Candidates.addAll(getCandidates(position));
-            if (selections.containsKey(position)) {
-                System.out.println(position + ": " + selections.get(position));
-                positionResult.Voter_Choice = selections.get(position);
-            } else {
-                System.out.println(position + ": blank");
-                positionResult.Voter_Choice = "blank";
-            }
+            positionResult.Candidates.addAll(candidatesList);
+            positionResult.Voter_Choice = selections.getOrDefault(position, "");
+
             ballotResult.Ballot.put(position, positionResult);
+
+            // Print the voting result for the current position
+            System.out.println(position + ": " + positionResult.Voter_Choice);
         }
 
         // Convert the results object to a JSON string
@@ -292,30 +301,6 @@ public class VoteFormGUI extends Application {
             e.printStackTrace();
         }
 
-        VoteData voteData;
-
-        try (FileReader fileReader = new FileReader("voteCount.json")) {
-            voteData = gson.fromJson(fileReader, VoteData.class);
-        } catch (IOException e) {
-            System.out.println("An error occurred while reading the results from the file.");
-            e.printStackTrace();
-            voteData = new VoteData(); // Create a new instance if there's an error reading the file
-        }
-
-        int currentCount = voteData.getTotalVoteCounts();
-        voteData.setTotalVoteCounts(currentCount+1);
-
-        String voteJson = gson.toJson(voteData);
-
-        try (FileWriter file = new FileWriter("voteCount.json")) {
-            file.write(voteJson);
-            System.out.println("Updated results saved to voteCount.json");
-        } catch (IOException e) {
-            System.out.println("An error occurred while saving the updated results to a file.");
-            e.printStackTrace();
-        }
-
-
         prevButton.setDisable(true);
         nextButton.setDisable(true);
         submitButton.setDisable(true);
@@ -325,19 +310,28 @@ public class VoteFormGUI extends Application {
         VBox options = optionElements.get(position);
         if (options != null && selections.containsKey(position)) {
             String selectedOption = selections.get(position);
+
+            // Find the write-in checkbox and text field
+            CheckBox writeInCheckBox = null;
+            TextField writeInField = null;
             for (Node node : options.getChildren()) {
-                if (node instanceof CheckBox) {
-                    CheckBox checkBox = (CheckBox) node;
-                    if (selectedOption.equals(checkBox.getText())) {
-                        checkBox.setSelected(true);
-                    }
+                if (node instanceof CheckBox && "Write-in".equals(((CheckBox) node).getText())) {
+                    writeInCheckBox = (CheckBox) node;
                 } else if (node instanceof TextField) {
-                    TextField textField = (TextField) node;
-                    if (selectedOption.startsWith("WRITE IN: ")) {
-                        textField.setText(selectedOption.substring(10));
-                        textField.setVisible(true);
-                        // Assuming there's a write-in checkbox
-                        ((CheckBox) options.getChildren().get(2)).setSelected(true);
+                    writeInField = (TextField) node;
+                }
+            }
+
+            // Check if a write-in was previously selected
+            if (selectedOption.startsWith("Write-in: ") && writeInCheckBox != null && writeInField != null) {
+                writeInCheckBox.setSelected(true);
+                writeInField.setText(selectedOption.replace("Write-in: ", ""));
+                writeInField.setVisible(true);
+            } else {
+                // If not, restore the selection of other checkboxes
+                for (Node node : options.getChildren()) {
+                    if (node instanceof CheckBox) {
+                        ((CheckBox) node).setSelected(selectedOption.equals(((CheckBox) node).getText()));
                     }
                 }
             }
@@ -345,147 +339,178 @@ public class VoteFormGUI extends Application {
     }
 
     private void createSubmitPrompt() {
-        contentBox.getChildren().clear();
+        if (submitPromptBox == null) {
 
-        submitPromptBox = new VBox(20);
-        submitPromptBox.setAlignment(Pos.CENTER);
-        submitPromptBox.setFillWidth(true);
-        submitPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
-        submitPromptBox.setMaxWidth(Double.MAX_VALUE);
 
-        Label promptLabel = new Label("Submit Votes?");
-        promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
-        submitPromptBox.getChildren().add(promptLabel);
+            submitPromptBox = new VBox(20);
+            submitPromptBox.setAlignment(Pos.CENTER);
+            submitPromptBox.setFillWidth(true);
+            submitPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+            submitPromptBox.setMaxWidth(Double.MAX_VALUE);
 
-        contentBox.getChildren().add(submitPromptBox);
+            Label promptLabel = new Label("Submit Votes?");
+            promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+
+            submitButton = new Button("Submit");
+            submitButton.setStyle(currentFontStyle);
+            submitButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            HBox.setHgrow(submitButton, Priority.ALWAYS);
+            submitButton.setOnAction(e -> handleSubmit());
+
+            submitPromptBox.getChildren().addAll(promptLabel);
+            buttonBox.getChildren().clear();
+            buttonBox.getChildren().addAll(prevButton,submitButton);
+        }
+
+        contentBox.getChildren().setAll(submitPromptBox); // Replace all children with submitPromptBox
     }
 
-    private void showVoterIdDialog(Stage primaryStage) {
-        Stage dialogStage = new Stage();
-        dialogStage.initModality(Modality.APPLICATION_MODAL);
-        dialogStage.initOwner(primaryStage);
-        VBox dialogVBox = new VBox(20);
-        dialogVBox.setPadding(new Insets(10));
-
-        TextField voterIdField = new TextField();
-        voterIdField.setPromptText("Enter Voter ID");
-        Button submitButton = new Button("Submit");
-        Label errorLabel = new Label();
-        errorLabel.setTextFill(javafx.scene.paint.Color.RED);
-
-        submitButton.setOnAction(e -> {
-            String voterId = voterIdField.getText();
-            if (voterId.matches("\\d{5}")) { // Check if voter ID is exactly 5 digits long
-                dialogStage.close();
-                primaryStage.show();
-            } else {
-                errorLabel.setText("Invalid Voter ID. Please enter a 5 digit ID.");
-            }
-        });
-
-        dialogVBox.getChildren().addAll(new Label("Please Enter Your 5-Digit Voter ID:"), voterIdField, submitButton, errorLabel);
-        Scene dialogScene = new Scene(dialogVBox, 300, 200);
-        dialogStage.setScene(dialogScene);
-        dialogStage.setTitle("Voter ID Validation");
-        dialogStage.showAndWait();
-    }
 
     private static class BallotResult {
-        Map<String, PositionResult> Ballot = new HashMap<>();
+        Map<String, PositionResult> Ballot = new LinkedHashMap<>();
     }
-
-    public static class VoteData {
-        private int totalVoteCounts;
-
-        public int getTotalVoteCounts() {
-            return totalVoteCounts;
-        }
-
-        public void setTotalVoteCounts(int totalVoteCounts) {
-            this.totalVoteCounts = totalVoteCounts;
-        }
-    }
-
 
     private static class PositionResult {
         List<String> Candidates = new ArrayList<>();
         String Voter_Choice;
     }
 
-    private List<String> getCandidates(String position) {
+    private void updateButtonVisibility() {
+        int totalVotingPages = offices.size();
 
-        Map<String, List<String>> candidates = new HashMap<>();
-        candidates.put("Governor", Arrays.asList("CANDIDATE 1", "CANDIDATE 2"));
-        candidates.put("President", Arrays.asList("CANDIDATE 1", "CANDIDATE 2"));
+        prevButton.setVisible(currentPage > 0);
+        prevButton.setDisable(currentPage <= 0);
 
-        return candidates.getOrDefault(position, Collections.emptyList());
+        nextButton.setVisible(currentPage < totalVotingPages + 1);
+        nextButton.setDisable(currentPage >= totalVotingPages + 1);
+
+        // Display the Submit button on the last voting page or as per your logic
+        submitButton.setVisible(currentPage == totalVotingPages + 1);
     }
 
-    private void createVoterIdPage(Stage primaryStage) {
+
+    private void createAccessibilityOptionsPage(Stage primaryStage) {
         contentBox.getChildren().clear();
+        buttonBox.getChildren().clear();
+        Button confirmButton = new Button("Confirm");
 
-        VBox voterIdBox = new VBox(20);
-        voterIdBox.setAlignment(Pos.CENTER);
-        voterIdBox.setFillWidth(true);
-        voterIdBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
-        voterIdBox.setMaxWidth(Double.MAX_VALUE);
+        accessibilityPromptBox = new VBox(20);
+        accessibilityPromptBox.setAlignment(Pos.CENTER);
+        accessibilityPromptBox.setFillWidth(true);
+        accessibilityPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+        accessibilityPromptBox.setMaxWidth(Double.MAX_VALUE);
 
-        // Create an ImageView and set the Bernalillo County logo image
-        ImageView logoImageView = new ImageView(new Image("bernalillo_county_logo.png"));
-        logoImageView.setFitHeight(350);  // Set the height of the logo
-        logoImageView.setPreserveRatio(true);  // Preserve the aspect ratio
-        logoImageView.setSmooth(true);  // Enable smooth resizing
-        logoImageView.setCache(true);  // Cache the rendered image for faster performance
+        Label accessibilityLabel = new Label("Select Accessibility Options:");
+        accessibilityLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;"); // Use the current font style
 
-        TextField voterIdField = new TextField();
-        voterIdField.setPromptText("Enter Voter ID");
-        voterIdField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
-        voterIdField.setMaxWidth(Double.MAX_VALUE);
-
-        Button submitButton = new Button("Submit");
-        submitButton.setStyle("-fx-font-size: 20px;");
-        submitButton.setMaxWidth(Double.MAX_VALUE);
-
-        Label errorLabel = new Label();
-        errorLabel.setTextFill(javafx.scene.paint.Color.RED);
-        errorLabel.setStyle("-fx-font-size: 20px;");
-
-        submitButton.setOnAction(e -> {
-            String voterId = voterIdField.getText();
-            if (voterId.matches("\\d{5}")) { // Check if voter ID is exactly 5 digits long
-                createGovernorPage(); // If valid, proceed to the governor page
-                currentPage = 1;
-                updateButtonVisibility();
-
-            } else {
-                errorLabel.setText("Invalid Voter ID. Please enter a 5 digit ID.");
-            }
+        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
+        largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
+        largerFontCheckbox.setSelected(currentFontStyle.equals(LARGE_FONT_STYLE)); // Set selected based on current style
+        largerFontCheckbox.setOnAction(e -> {
+            String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
+            updateFontSize(newStyle);
         });
 
-        // Add the logo and the other components to the VBox
-        voterIdBox.getChildren().addAll(logoImageView, new Label("Please Enter Your 5-Digit Voter ID:"), voterIdField, submitButton, errorLabel);
-        contentBox.getChildren().add(voterIdBox);
+        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
+        highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
+
+        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
+        textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
+
+        confirmButton.setStyle(currentFontStyle); // Use the current font style
+        confirmButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        HBox.setHgrow(confirmButton, Priority.ALWAYS); // Make the button grow horizontally
+
+        confirmButton.setOnAction(e -> {
+            if (largerFontCheckbox.isSelected()) {
+                // Apply larger font settings across the UI
+            }
+            if (highContrastCheckbox.isSelected()) {
+                // Apply high contrast settings across the UI
+            }
+            if (textToSpeechCheckbox.isSelected()) {
+                // Activate text to speech functionality
+            }
+
+            createVotingPage(0); // Navigate to the first voting page
+            //currentPage = 1;
+            updateButtonVisibility();
+            confirmButton.setVisible(false);
+            buttonBox.getChildren().clear();
+            buttonBox.getChildren().addAll(prevButton, nextButton); // Add back the navigation buttons
+            updateButtonVisibility(); // Make sure to update the visibility based on the current page
+
+            //createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
+        });
+
+        accessibilityPromptBox.getChildren().addAll(accessibilityLabel);
+        contentBox.getChildren().addAll(accessibilityPromptBox, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
+        buttonBox.getChildren().add(confirmButton);
+
     }
 
-    private void updateButtonVisibility() {
-        if (currentPage == 1) {
-            prevButton.setVisible(true);
-            prevButton.setDisable(false);
-            nextButton.setVisible(true);
-            nextButton.setDisable(false);
-        } else if (currentPage == 2) {
-            prevButton.setVisible(true);
-            prevButton.setDisable(false);
-            nextButton.setVisible(true);
-            nextButton.setDisable(false);
-        } else if (currentPage == 3) {
-            prevButton.setVisible(true);
-            prevButton.setDisable(false);
-            nextButton.setVisible(false); // Hide the Next button on the submit page
-            nextButton.setDisable(true); // Disable the Next button on the submit page
+    private void updateFontSize(String fontSizeStyle) {
+        currentFontStyle = fontSizeStyle; // Update the current font style
+        applyCurrentFontStyleToUI(); // Apply the new font style to the UI
+    }
+
+    private void applyCurrentFontStyleToUI() {
+        // Update the style for buttons as an example
+        prevButton.setStyle(currentFontStyle);
+        nextButton.setStyle(currentFontStyle);
+        submitButton.setStyle(currentFontStyle);
+
+        // Apply the current font style to the options and headers
+        optionElements.values().forEach(optionBox -> updateFontSizeRecursive(optionBox, currentFontStyle));
+        // You might need additional lines here to update other parts of the UI
+    }
+
+    private void updateFontSizeRecursive(Pane parent, String fontSizeStyle) {
+        for (Node child : parent.getChildren()) {
+            if (child instanceof Text) {
+                ((Text) child).setStyle(fontSizeStyle);
+            } else if (child instanceof Label) {
+                ((Label) child).setStyle(fontSizeStyle);
+            } else if (child instanceof Button) {
+                ((Button) child).setStyle(fontSizeStyle);
+            } else if (child instanceof CheckBox) {
+                ((CheckBox) child).setStyle(fontSizeStyle);
+            } else if (child instanceof TextField) {
+                ((TextField) child).setStyle(fontSizeStyle);
+            } else if (child instanceof Pane) {
+                updateFontSizeRecursive((Pane) child, fontSizeStyle);
+            }
         }
     }
 
+    private void initializeOffices() {
+        offices = new ArrayList<>();
+        offices.add(new AbstractMap.SimpleEntry<>("Governor", Arrays.asList("1","Michelle Lujan Grisham", "Susana Martinez")));
+        offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList("2","Tim Keller", "Jehiel Luciana", "Džejlana Avedis")));
+        offices.add(new AbstractMap.SimpleEntry<>("Senator", Arrays.asList("3","Ben Ray Lujan", "Martin Heinrich")));
+        offices.add(new AbstractMap.SimpleEntry<>("Dog", Arrays.asList("4","Husky", "Golden retriever", "German Shepard")));
+        // Add more offices and candidates as needed
+    }
+
+    private void createVotingPage(int pageIndex) {
+        if (pageIndex < 0 || pageIndex >= offices.size()) {
+            return; // Index out of bounds
+        }
+
+        Map.Entry<String, List<String>> office = offices.get(pageIndex);
+        contentBox.getChildren().clear();
+
+        VBox headerDescriptionBox = createHeader(office.getKey(), "(Vote for One)");
+        VBox optionsBox = createOptionsBox(office.getKey(), office.getValue());
+
+        contentBox.getChildren().addAll(headerDescriptionBox, optionsBox);
+        restoreSelections(office.getKey()); // Restore selections for this position
+        applyCurrentFontStyleToUI();
+
+        currentPage = pageIndex + 1; // Update current page index
+        System.out.println("Inside createVotingPage: " + currentPage);
+        updateButtonVisibility(); // Update the visibility of navigation buttons
+    }
 
     public static void main(String[] args) {
         launch(args);

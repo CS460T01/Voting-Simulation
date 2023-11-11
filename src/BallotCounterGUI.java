@@ -54,7 +54,6 @@ public class BallotCounterGUI extends Application {
         titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
         titleLabel.setAlignment(Pos.CENTER);
 
-        updateVoteCount();
         voteLabel = new Label(String.valueOf(voteCount));
         voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
         voteLabel.setAlignment(Pos.CENTER);
@@ -69,18 +68,7 @@ public class BallotCounterGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    public void updateVoteCount(){
-        Gson gson = new Gson();
-        VoteFormGUI.VoteData vote;
-        try (FileReader fileReader = new FileReader("voteCount.json")) {
-            vote = gson.fromJson(fileReader, VoteFormGUI.VoteData.class);
-        } catch (IOException e) {
-            System.out.println("An error occurred while reading the results from the file.");
-            e.printStackTrace();
-            vote = new VoteFormGUI.VoteData(); // Create a new instance if there's an error reading the file
-        }
-        voteCount = vote.getTotalVoteCounts();
-    }
+
 
 
 }
