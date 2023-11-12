@@ -2,6 +2,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -26,15 +27,16 @@ public class VoteFormGUI extends Application {
     HBox buttonBox;
     private String currentFontStyle = NORMAL_FONT_STYLE;
     List<Map.Entry<String, List<String>>> offices;
+    private static final String HIGH_CONTRAST_STYLE = "-fx-background-color: #0C4D7C; -fx-text-fill: #DCD62C;";
 
-
+    BorderPane root;
     private static final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
     private static final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
     Map<String, VBox> optionElements = new HashMap<>();
 
     @Override
     public void start(Stage primaryStage) {
-        BorderPane root = new BorderPane();
+        root = new BorderPane(); // Initialize here
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
         contentBox.setFillWidth(true);
@@ -399,22 +401,46 @@ public class VoteFormGUI extends Application {
         accessibilityPromptBox.setFillWidth(true);
         accessibilityPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
         accessibilityPromptBox.setMaxWidth(Double.MAX_VALUE);
+        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
+        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
+        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
 
         Label accessibilityLabel = new Label("Select Accessibility Options:");
         accessibilityLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;"); // Use the current font style
 
-        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
         largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
         largerFontCheckbox.setSelected(currentFontStyle.equals(LARGE_FONT_STYLE)); // Set selected based on current style
         largerFontCheckbox.setOnAction(e -> {
-            String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
-            updateFontSize(newStyle);
+            //String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
+
+            if (largerFontCheckbox.isSelected()) {
+                largerFontCheckbox.setStyle(LARGE_FONT_STYLE);
+                highContrastCheckbox.setStyle(LARGE_FONT_STYLE);
+                textToSpeechCheckbox.setStyle(LARGE_FONT_STYLE);
+                confirmButton.setStyle(LARGE_FONT_STYLE);
+                updateFontSize(LARGE_FONT_STYLE);
+            }
+            else {
+                largerFontCheckbox.setStyle(NORMAL_FONT_STYLE);
+                highContrastCheckbox.setStyle(NORMAL_FONT_STYLE);
+                textToSpeechCheckbox.setStyle(NORMAL_FONT_STYLE);
+                confirmButton.setStyle(NORMAL_FONT_STYLE);
+                updateFontSize(NORMAL_FONT_STYLE);
+            }
+
+
         });
 
-        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
         highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
+        highContrastCheckbox.setOnAction(e -> {
+            if (highContrastCheckbox.isSelected()) {
+                applyHighContrastStyle(root);
+            } else {
+                removeHighContrastStyle(root);
+            }
+        });
 
-        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
+
         textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
 
         confirmButton.setStyle(currentFontStyle); // Use the current font style
@@ -425,9 +451,7 @@ public class VoteFormGUI extends Application {
             if (largerFontCheckbox.isSelected()) {
                 // Apply larger font settings across the UI
             }
-            if (highContrastCheckbox.isSelected()) {
-                // Apply high contrast settings across the UI
-            }
+
             if (textToSpeechCheckbox.isSelected()) {
                 // Activate text to speech functionality
             }
@@ -447,6 +471,24 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().addAll(accessibilityPromptBox, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
         buttonBox.getChildren().add(confirmButton);
 
+    }
+
+    private void applyHighContrastStyle(Parent parent) {
+        parent.setStyle(HIGH_CONTRAST_STYLE);
+        for (Node child : parent.getChildrenUnmodifiable()) {
+            if (child instanceof Parent) {
+                applyHighContrastStyle((Parent) child);
+            }
+        }
+    }
+
+    private void removeHighContrastStyle(Parent parent) {
+        parent.setStyle(""); // Reset to default styles or apply normal styles
+        for (Node child : parent.getChildrenUnmodifiable()) {
+            if (child instanceof Parent) {
+                removeHighContrastStyle((Parent) child);
+            }
+        }
     }
 
     private void updateFontSize(String fontSizeStyle) {
