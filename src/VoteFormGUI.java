@@ -27,8 +27,11 @@ public class VoteFormGUI extends Application {
     HBox buttonBox;
     private String currentFontStyle = NORMAL_FONT_STYLE;
     List<Map.Entry<String, List<String>>> offices;
-    private static final String HIGH_CONTRAST_STYLE = "-fx-background-color: #0C4D7C; -fx-text-fill: #DCD62C;";
-
+    String buttonHighContrastBackground = "-fx-background-color: #ffcc00; ";
+    String buttonHighContrastText = "-fx-text-fill: #0099ff; ";
+    String highContrastBackground = "-fx-background-color: #0099ff; ";
+    String highContrastText = "-fx-background-color: red; ";
+    boolean HIGH_CONTRAST = false;
     BorderPane root;
     private static final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
     private static final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
@@ -104,6 +107,7 @@ public class VoteFormGUI extends Application {
                     currentPage++; // Manually increment because createSubmitPrompt doesn't increment currentPage
                     buttonBox.getChildren().clear();
                     buttonBox.getChildren().addAll(prevButton,submitButton);
+                    submitButton.setStyle(getButtonStyle(currentFontStyle));
                     //submitButton.setVisible(true);
                     //nextButton.setVisible(false);
                     updateButtonVisibility();
@@ -116,7 +120,7 @@ public class VoteFormGUI extends Application {
 
 
 
-        createAccessibilityOptionsPage(primaryStage);
+        createAccessibilityOptionsPage(primaryStage, root);
 
         ScrollPane scrollPane = new ScrollPane(contentBox);
         scrollPane.setFitToWidth(true);
@@ -126,6 +130,7 @@ public class VoteFormGUI extends Application {
         //createVotingPage(0);
 
         Scene scene = new Scene(root, 600, 700);
+
         primaryStage.setTitle("Ballot");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -391,7 +396,7 @@ public class VoteFormGUI extends Application {
     }
 
 
-    private void createAccessibilityOptionsPage(Stage primaryStage) {
+    private void createAccessibilityOptionsPage(Stage primaryStage, Pane rootPane) {
         contentBox.getChildren().clear();
         buttonBox.getChildren().clear();
         Button confirmButton = new Button("Confirm");
@@ -417,15 +422,15 @@ public class VoteFormGUI extends Application {
                 largerFontCheckbox.setStyle(LARGE_FONT_STYLE);
                 highContrastCheckbox.setStyle(LARGE_FONT_STYLE);
                 textToSpeechCheckbox.setStyle(LARGE_FONT_STYLE);
-                confirmButton.setStyle(LARGE_FONT_STYLE);
-                updateFontSize(LARGE_FONT_STYLE);
+                confirmButton.setStyle(getButtonStyle(LARGE_FONT_STYLE));
+                updateFontSize(LARGE_FONT_STYLE, "");
             }
             else {
                 largerFontCheckbox.setStyle(NORMAL_FONT_STYLE);
                 highContrastCheckbox.setStyle(NORMAL_FONT_STYLE);
                 textToSpeechCheckbox.setStyle(NORMAL_FONT_STYLE);
-                confirmButton.setStyle(NORMAL_FONT_STYLE);
-                updateFontSize(NORMAL_FONT_STYLE);
+                confirmButton.setStyle(getButtonStyle(NORMAL_FONT_STYLE));
+                updateFontSize(NORMAL_FONT_STYLE, "");
             }
 
 
@@ -434,12 +439,20 @@ public class VoteFormGUI extends Application {
         highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
         highContrastCheckbox.setOnAction(e -> {
             if (highContrastCheckbox.isSelected()) {
+                HIGH_CONTRAST = true;
+                confirmButton.setStyle(getButtonStyle(currentFontStyle));
+                updateButtonVisibility();
                 applyHighContrastStyle(root);
+                updateFontSize(currentFontStyle, "");
+
             } else {
+                HIGH_CONTRAST = false;
+                confirmButton.setStyle(getButtonStyle(currentFontStyle));
+                updateButtonVisibility();
+                contentBox.setStyle("");
                 removeHighContrastStyle(root);
             }
         });
-
 
         textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
 
@@ -474,7 +487,13 @@ public class VoteFormGUI extends Application {
     }
 
     private void applyHighContrastStyle(Parent parent) {
-        parent.setStyle(HIGH_CONTRAST_STYLE);
+        HIGH_CONTRAST = true;
+        // Apply the style only if the parent is a type of container
+        if (parent instanceof Pane || parent instanceof VBox || parent instanceof HBox || parent instanceof BorderPane || parent instanceof StackPane) {
+            parent.setStyle(highContrastBackground);
+        }
+
+        // Recursively apply the style to child nodes that are containers
         for (Node child : parent.getChildrenUnmodifiable()) {
             if (child instanceof Parent) {
                 applyHighContrastStyle((Parent) child);
@@ -483,7 +502,14 @@ public class VoteFormGUI extends Application {
     }
 
     private void removeHighContrastStyle(Parent parent) {
-        parent.setStyle(""); // Reset to default styles or apply normal styles
+        HIGH_CONTRAST = false;
+
+        // Apply the normal background style only to container types
+        if (parent instanceof Pane || parent instanceof VBox || parent instanceof HBox || parent instanceof BorderPane || parent instanceof StackPane) {
+            parent.setStyle("");
+        }
+
+        // Recursively reset the style for child nodes that are containers
         for (Node child : parent.getChildrenUnmodifiable()) {
             if (child instanceof Parent) {
                 removeHighContrastStyle((Parent) child);
@@ -491,12 +517,12 @@ public class VoteFormGUI extends Application {
         }
     }
 
-    private void updateFontSize(String fontSizeStyle) {
+    private void updateFontSize(String fontSizeStyle, String color) {
         currentFontStyle = fontSizeStyle; // Update the current font style
-        applyCurrentFontStyleToUI(); // Apply the new font style to the UI
+        applyCurrentFontStyleToUI(color); // Apply the new font style to the UI
     }
 
-    private void applyCurrentFontStyleToUI() {
+    private void applyCurrentFontStyleToUI(String color) {
         // Update the style for buttons as an example
         prevButton.setStyle(currentFontStyle);
         nextButton.setStyle(currentFontStyle);
@@ -508,17 +534,29 @@ public class VoteFormGUI extends Application {
     }
 
     private void updateFontSizeRecursive(Pane parent, String fontSizeStyle) {
+        String highContrastColor = "-fx-text-fill: yellow;"; // Replace 'yellow' with your desired color
+        String combinedStyle;
+
+        if(HIGH_CONTRAST == true) {
+            combinedStyle = fontSizeStyle + highContrastColor; // Combine font size and text color
+        }
+        else{combinedStyle = fontSizeStyle + "";}
+
         for (Node child : parent.getChildren()) {
             if (child instanceof Text) {
-                ((Text) child).setStyle(fontSizeStyle);
+                ((Text) child).setStyle(combinedStyle);
             } else if (child instanceof Label) {
-                ((Label) child).setStyle(fontSizeStyle);
+                ((Label) child).setStyle(combinedStyle);
             } else if (child instanceof Button) {
-                ((Button) child).setStyle(fontSizeStyle);
+                // For Buttons, you might want to only change the text size and not the text color
+                // If you want to change both, use combinedStyle
+                ((Button) child).setStyle(combinedStyle);
             } else if (child instanceof CheckBox) {
-                ((CheckBox) child).setStyle(fontSizeStyle);
+                ((CheckBox) child).setStyle(combinedStyle);
             } else if (child instanceof TextField) {
-                ((TextField) child).setStyle(fontSizeStyle);
+                // For TextFields, you might want to only change the text size and not the text color
+                // If you want to change both, use combinedStyle
+                ((TextField) child).setStyle(combinedStyle);
             } else if (child instanceof Pane) {
                 updateFontSizeRecursive((Pane) child, fontSizeStyle);
             }
@@ -547,12 +585,26 @@ public class VoteFormGUI extends Application {
 
         contentBox.getChildren().addAll(headerDescriptionBox, optionsBox);
         restoreSelections(office.getKey()); // Restore selections for this position
-        applyCurrentFontStyleToUI();
+        applyCurrentFontStyleToUI("");
+
+        if(HIGH_CONTRAST == true) {
+            nextButton.setStyle(getButtonStyle(currentFontStyle));
+            prevButton.setStyle(getButtonStyle(currentFontStyle));
+        }
 
         currentPage = pageIndex + 1; // Update current page index
         System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility(); // Update the visibility of navigation buttons
     }
+
+    private String getButtonStyle(String currentFontStyle) {
+        if(HIGH_CONTRAST == true) {
+            return buttonHighContrastBackground + buttonHighContrastText + currentFontStyle;
+        }
+
+        else{return currentFontStyle;}
+    }
+
 
     public static void main(String[] args) {
         launch(args);
