@@ -1,0 +1,382 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{biblatex}
+\usepackage[entrycounter=true]{glossaries}
+
+\makeglossaries
+
+\newglossaryentry{remote}
+{
+    name=Remote Voting,
+    description={The ability for a voter to cast their vote without being physically present at a polling station.}
+}
+
+\newglossaryentry{2FA}
+{
+    name=Two-Factor Authentication,
+    description={A security process where users provide two different authentication factors to verify themselves.}
+}
+
+\newglossaryentry{back-end}
+{
+    name=back-end,
+    description={The technology and software on the server side that powers the application.}
+}
+
+\newglossaryentry{tabulator}
+{
+    name=tabulator,
+    description={A device or system that counts votes.},
+    plural=tabulators
+}
+
+\newglossaryentry{peripheral}
+{
+    name=peripheral,
+    description={An external device or equipment that connects to the main voting machine or system to extend its functionality.},
+    plural=peripherals
+}
+
+\newglossaryentry{framework}
+{
+    name=legal framework,
+    description={The set of laws, regulations, guidelines, and policies that govern the conduct of elections and voting processes.}
+}
+
+\newglossaryentry{nonvolatile}
+{
+    name=nonvolatile memory,
+    description={A type of storage medium that retains stored data even when the system is powered off.}
+}
+
+\newglossaryentry{overvote}
+{
+    name=overvote,
+    description={Occurs when a voter selects more candidates or options than are allowed for a particular contest or question on the ballot.}
+}
+
+\newglossaryentry{jurisdiction}
+{
+    name=jurisdiction,
+    description={Refers to the specific geographical or administrative area responsible for conducting elections and managing the voting process.}
+}
+
+\newglossaryentry{escrow}
+{
+    name=escrow,
+    description={A requirement for the source code of the voting system software to be deposited, or stored, with a neutral third-party entity, known as an escrow agent.}
+}
+
+\newglossaryentry{audit}
+{
+    name=audit trail,
+    description={A set of records that provides a verifiable and traceable history of all actions and events related to a vote or a set of votes}
+}
+
+\renewcommand{\contentsname}{Table of Contents}
+\addbibresource{rdd.bib}
+\geometry{
+ a4paper,
+ left=20mm,
+ right=20mm,
+ top=20mm,
+ bottom=25mm,
+ }
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+\vspace*{1cm}
+
+\Huge
+\textbf{Project 02: Voting Simulation}
+
+\vspace{0.5cm}
+\Large
+\textit{Requirements Definition Document} \\
+\textit{RDD Version 2}
+
+\vspace{1cm}
+
+\textbf{Team 01}
+
+\vspace{0.5cm}
+
+\text{Marina Seheon (Manager)} \\
+\text{Andrei Phelps (Document Manager)} \\
+\text{Luke McDougall (Lead Software Engineer)} \\
+\text{Jack Vanlyssel} \\
+\text{Spoorthi Menta} \\
+\text{Vamsi Krishna Singara} \\
+
+\vspace{1cm}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{docs/rdd/figures/ballot_icon.png}
+    \caption*{Image courtesy of Flaticon.com \cite{flaticonElectionsFree}.}
+    \label{fig:safeIcon}
+\end{figure}
+
+\vspace{7cm}
+
+\Large
+\textbf{CS460: Software Engineering} \\
+
+\end{center}
+\end{titlepage}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+The New Mexico Voting Simulation represents a significant leap in electoral technology, blending traditional practices with modern digital advancements. This system is not only in strict adherence to the New Mexico Election Code but also exceeds these benchmarks, ensuring an accessible, transparent, and secure voting experience. Our comprehensive approach covers all operational aspects from ballot preparation to cybersecurity, emphasizing the quality and trustworthiness necessary for a reliable democratic process. \\ \\
+This simulation adheres to the state's stringent standards for ballot printing, user interface, and logistical guidelines. It not only mirrors real-world voting scenarios but also aligns with evolving guidelines by federal entities, such as the U.S. Election Assistance Commission \cite{eacVotingAccessibility}, to ensure we meet and set future standards. \\ \\
+Structured to be intuitive and reliable, the document lays out the regulations, objectives, and organizational details of the simulation. It tackles challenges with state-of-the-art solutions and adheres to terms and technical language that is consistent across the entire document. Our unwavering goal is to deliver a voting environment that is both robust and compliant, serving election officials, participants, and observers with the highest standard of electoral integrity.
+
+\section{Regulations}
+This section outlines the comprehensive \gls{framework}\footnote{\glsdesc{framework}} of requirements essential for the New Mexico Voting Simulation, detailing the deep technical structure that underpins our system. It starts with the \Gls{tabulator}\footnote{\glsdesc{tabulator}} Certification Requirements, setting forth the stringent standards for voting tabulators, which cover hardware and software criteria, data handling, and contingency planning to ensure they are not only legally compliant but also robust across various operational scenarios \cite{nmVotingSystem}.
+
+\subsection{Tabulator Certification Requirements}
+Within this framework, the tabulators must meet stringent Technical Requirements. These are not just specifications; they are guarantees of auditability, reliability, and scalability, reflecting our commitment to federal and state law adherence and ensuring the fidelity of the voting process.
+
+\subsubsection{Technical Requirements (1-9-7.7)}
+The Technical Requirements specify the exact physical and functional specifications that voting systems must meet, including unique identification features, environmental safeguards, and network independence, all contributing to a reliable and transparent framework for election data handling.
+
+\begin{itemize}
+    \item Unique embedded internal serial number for auditing.
+    \item Stand-alone, a non-networked system with event recording.
+    \item Scalable technology compliant with federal standards and state law.
+    \item Public display of the number of ballots processed.
+    \item Print capabilities for verification at the start and end of polls, compliant with state law.
+    \item Feature for electronic data file report generation.
+\end{itemize}
+
+\subsubsection{Operational Requirements (1-9-7.8)}
+Operational Requirements detail the software's functional reliability and the overall system's stability, including self-check protocols, provisions for necessary \glspl{peripheral}\footnote{\glsdesc{peripheral}}, accurate timekeeping, and robust power backup solutions to guarantee consistent and transparent operation throughout the voting process.
+
+\begin{itemize}
+    \item Election-specific internal application software.
+    \item Comprehensive diagnostics for failure detection.
+    \item Real-time clock for polling times.
+    \item Internal backup battery with minimum two-hour operation during outages, without data loss.
+\end{itemize}
+
+\subsubsection{Memory and Storage Requirements (1-9-7.9)}
+Memory and Storage Requirements underscore the paramount importance of data integrity and security within our system's storage framework, requiring secure, removable media and detailed, retrievable audit logs to uphold the integrity of the electoral process.
+
+\begin{itemize}
+    \item Programmable with removable storage media. 
+    \item Secure and accurate vote storage on removable devices.
+    \item \Gls{nonvolatile}\footnote{\glsdesc{nonvolatile}} for the operating system with quality checks.
+    \item Pre-election testing with results storage and printout capabilities.
+    \item Internal audit trails for all election events, with print support.
+    \item Secure remote transmission of results post-poll closing.
+    \item Data protection during report generation and transmission.
+\end{itemize}
+
+\subsubsection{Ballot Handling and Processing (1-9-7.10)}
+Ballot Handling and Processing set the standards for managing the complexities of various ballot sizes, styles, and orientations, ensuring accurate vote registration and preventing over-voting, consistent with the large-scale election framework.
+
+\begin{itemize}
+    \item Accommodation for ballots of specified dimensions and printing styles.
+    \item Capability to accept ballots in any orientation.
+    \item \Gls{overvote}\footnote{\glsdesc{overvote}} rejection.
+    \item Accommodation for maximum ballot styles/variations in large \glspl{jurisdiction}\footnote{\glsdesc{jurisdiction}}.
+    \item Reading of single ballots with at least 420 voting positions.
+\end{itemize}
+
+\subsubsection{Source Code Escrow (1-9-7.11)}
+Source Code \Gls{escrow}\footnote{\glsdesc{escrow}} is a critical element of our framework, mandated to protect the voting system's continuity and integrity, providing the state with unfettered access to the system's source code for legal scrutiny and maintenance.
+
+\begin{itemize}
+    \item Mandatory escrow of the voting system's source code.
+    \item State access in cases where the manufacturer is defunct or no longer supports the system.
+\end{itemize}
+
+\subsection{Ballot Printing System Requirements}
+This section outlines the essential elements for an effective ballot printing system, encompassing early voting logistics, precision in ballot generation, and stringent security measures. The goal is to deliver a streamlined voting process that is both transparent and secure for all participants.
+
+\subsubsection{Early Voting (1-6-5.7(D))}
+Early voting necessitates specific identification protocols to ensure legitimacy. This subsection details the ID requirements, the handling of provisional ballots, and the recording of early votes, ensuring every early vote is properly registered.
+
+\begin{itemize}
+    \item When voting at an early voting location, the voter shall provide the required voter identification to the election board, county clerk, or the clerk's authorized representative.
+    \item If the voter does not provide the required identification, the voter shall be allowed to vote on a provisional ballot. Suppose the voter provides the required voter identification. In that case, the voter shall be allowed to vote after subscribing to an application to vote on a form approved by the secretary of state or its electronic equivalent approved by the voting system certification committee.
+    \item The county clerk or the clerk's authorized representative shall make an appropriate designation on the signature roster or register next to the voter's name, indicating that the voter has voted early.
+\end{itemize}
+
+\subsubsection{Systems Designed to Print Ballots at Polling Locations; Ballot Preparation Requirements (1-9-20)}
+Ballot creation systems must offer diverse functionalities to accommodate the complexities of ballot formatting. These include automatic alignment to election codes, support for numerous voting positions, segregation of party choices in primaries, and accurate alignment of response fields, all while ensuring compatibility with statewide voter systems.
+
+\begin{itemize}
+    \item Systems designed to print ballots at polling locations shall provide the general capabilities for ballot preparation and shall be capable of:
+    \begin{itemize}
+        \item[a.] Enabling the automatic formatting of ballots by the requirements of the Election Code, as amended from time to time, for offices, candidates, and questions qualified to be placed on the ballot for each political subdivision and election district;
+        \item[b.] Supporting the maximum number of potentially active voting positions;
+        \item[c.] Generating ballots for a primary election that segregate the choices in partisan contests by party affiliation;
+        \item[d.] Ensuring that voting response fields properly align with the specific candidate names or questions printed on the ballot;
+        \item[e.] Generating ballots that can be tabulated by all certified voting systems in the state;
+        \item[f.] Generating a ballot for an individual voter based on voter registration data provided by state or county;
+        \item[g.] Functionality in absentee, early, and election-day voting environments;
+        \item[h.] Providing absentee ballot tracking ability.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Systems Designed to Print Ballots at Polling Locations; Security Requirements (1-9-21)}
+Focusing on safeguarding the integrity of the voting process, this subsection mandates comprehensive audit trails and security measures. This includes detailed logs of all ballot-related activities and the establishment of robust security protocols to protect voter data even during network disruptions.
+
+\begin{itemize}
+    \item Systems designed to print ballots at polling locations shall provide the security capabilities for ballot preparation and shall be capable of:
+    \begin{itemize}
+        \item[a.] Providing a full \gls{audit}\footnote{\glsdesc{audit}} of individual voter activity;
+        \item[b.] Providing full ballot production audit logs for all activity, including absentee voting by mail, in-person absentee voting, early voting, provisional voting, and spoiling ballots;
+        \item[c.] Creation and preservation of an audit trail of every ballot issued, including during a period of interrupted communication in the event of loss of network connectivity;
+        \item[d.] Suitable security passwords at user, administrator, and management levels.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Systems Designed to Print Ballots at Polling Locations; Hardware, Software and Usability Requirements (1-9-22)}
+The requirements for ballot printing system hardware and software emphasize seamless integration with voter registration systems and intuitive user interfaces. Essential stipulations include network and scalability for hardware, data exporting, and report generation for software, all to be managed through a user-friendly interface.
+
+\begin{itemize}
+    \item Systems designed to print ballots at polling locations shall:
+    \begin{itemize}
+        \item[a.] Provide hardware requirements that:
+        \begin{itemize}
+            \item[i.] Shall be networkable and scalable for multi-user environments;
+            \item[ii.] Contain prominent instructions as to any special requirements.
+        \end{itemize}
+        \item[b.] Provide software requirements that:
+        \begin{itemize}
+            \item[i.] Be capable of exporting voter data and voter activity status data to state and county voter registration systems;
+            \item[ii.] Be capable of generating all required absentee and early voting signature rosters in a state-approved format;
+            \item[iii.] Generate daily and to-date activity reports based on user-defined criteria;
+            \item[iv.] Have both single transaction and batch transaction absentee production capability;
+        \end{itemize}
+        \item[c.] Be capable of being operated by computer users familiar with a graphical user interface.
+    \end{itemize}
+\end{itemize}
+
+\section{Objectives}
+The New Mexico Voting Simulation is at the forefront of integrating traditional voting practices with cutting-edge digital technology. Our core objectives revolve around enhancing democratic engagement through improved accessibility, ensuring the accuracy of each vote, and fostering trust in the voting process.
+
+\subsection{Facilitate Transparent Elections}
+We are committed to making every vote count with clarity and integrity. Utilizing advanced digital platforms and strong encryption, our system is designed to provide transparent, verifiable voting. Our goal is to eliminate any discrepancies, ensuring every ballot cast is recorded accurately and permanently.
+
+\subsection{Achieve State Compliance}
+Adhering to the New Mexico Election Code and other regulatory standards is crucial for us. Our aim is to exceed basic compliance, creating a system that not only meets but sets new standards for electoral processes both nationally and globally.
+
+\subsection{Ensure Security and Reliability}
+In response to growing cyber threats, we prioritize the security and reliability of our voting system. Through multi-layered cybersecurity measures, our system is built to be resilient against external threats, with capabilities for real-time monitoring and rapid response to any potential issues.
+
+\subsection{Accessibility for All Users}
+We understand the importance of an inclusive voting process. Our system is designed with features such as inverted color schemes for better visual accessibility, text-to-voice functionality for auditory support, and larger fonts for easier reading \cite{nmDisabilitiesVotingSystem}. These provisions ensure that voters with various disabilities can participate equally in the electoral process.
+
+\section{System Organization}
+Our voting system seamlessly blends an intuitive user interface with a robust back-end, ensuring an efficient and error-free voting experience. Integration with the state's database provides real-time voter verification and accurate result compilation, all while maintaining top-tier security and user-friendliness. This holistic approach guarantees a reliable and streamlined electoral process for all involved.
+
+\subsection{User Interface}
+The user interface of our voting system is designed for simplicity and accessibility, as showcased in the Bernalillo County Ballot mockup. Clear distinctions between candidates and the option for write-ins ensure all voters' preferences are recognized. Furthermore, intuitive navigation buttons guide voters seamlessly through the process.
+
+\vspace{0.3cm}
+
+\begin{center}
+\includegraphics[scale=0.40]{docs/rdd/figures/user_interface.png}
+\captionof{figure}{Mockup of Bernalillo County Ballot}
+\end{center}
+
+\begin{itemize}
+    \item Clear distinction between candidates.
+    \item An option to write in a candidate ensures everyone's choice is accounted for.
+    \item Navigation buttons guide the voter through the process.
+\end{itemize}
+
+\subsection{Back-end System}
+The \gls{back-end}\footnote{\glsdesc{back-end}} of our voting system is engineered for fast data processing, leveraging encrypted channels for data security. It's designed to scale with high voter turnout and includes real-time monitoring to identify inconsistencies or potential breaches quickly.
+
+\begin{itemize}
+    \item Uses encrypted channels to ensure data integrity.
+    \item Scalable to accommodate high voter turnout.
+    \item Real-time monitoring to detect any inconsistencies or attempted breaches.
+\end{itemize}
+
+\subsection{State Database Integration}
+Our voting system is intricately connected with the state's database, allowing for instant verification of eligible voters. It ensures precise vote counting and aggregation of results while strictly adhering to state guidelines.
+
+\begin{itemize}
+    \item Immediate verification of eligible voters.
+    \item Accurate vote counting and result aggregation.
+    \item Compliance with state guidelines.
+\end{itemize}
+
+\section{Capabilities}
+Our voting system is an innovative and comprehensive approach tailored to address the complex challenges presented by modern elections. By leveraging cutting-edge technology, we aim to create a seamless experience for voters while maintaining the integrity and security of the electoral process.
+
+\subsection{Remote Voting}
+Our platform has been designed with the modern citizen in mind. It eradicates geographical barriers, empowering voters to participate from anywhere. Whether at home or on the go, voters can use their preferred devices to vote.
+
+\begin{itemize}
+    \item Voters can cast their votes from the comfort of their homes.
+    \item Voters can use their preferred devices.
+    \item One-time use codes via \gls{2FA}\footnote{\glsdesc{2FA}} to authenticate and cast votes.
+\end{itemize}
+
+\subsection{Live Monitoring}
+ Transparency and immediate oversight are paramount in today's digital age. Our system offers instantaneous insights into the voting progression, displaying real-time statistics on voter turnout.
+
+\begin{itemize}
+    \item Live voter turnout statistics.
+    \item Notifies administrative users of any unusual patterns or potential security breaches.
+\end{itemize}
+
+\subsection{Instant Result Compilation}
+In a world where information travels at lightning speed, waiting for election results can be agonizing. Our platform is engineered for rapid vote compilation, ensuring results are announced promptly. This not only enhances public trust but also provides an avenue for parties and observers to verify and validate the result counts, fostering transparency throughout the process.
+
+\begin{itemize}
+    \item Rapid vote compilation ensures quick result announcements.
+    \item Allows parties and observers to verify result counts.
+\end{itemize}
+
+\section{Design Constraints}
+Despite leading in technological innovation, our system is designed to work best within specific boundaries. These limitations guarantee its reliability and effectiveness, ensuring it blends smoothly with current infrastructures and complies with regulatory standards.
+
+\subsection{Hardware Limitations}
+To guarantee peak performance and display, our system has been fine-tuned for specific server capacities and screen resolutions. Although versatile, the hardware must align with these stipulations to ensure the best user experience and system responsiveness.
+
+\begin{itemize}
+    \item Optimized for specific server capacities.
+    \item Requires specific screen resolutions for best display.
+\end{itemize}
+
+\subsection{Network Dependencies}
+A seamless voting experience hinges on uninterrupted internet connectivity. While our system is robust enough to weather minor disruptions, it is imperative to have a stable network connection.
+
+\begin{itemize}
+    \item Relies on stable internet connectivity.
+    \item Can handle minor disruptions, but prolonged outages might need manual interventions.
+\end{itemize}
+
+\subsection{State Regulations}
+We respect and acknowledge the importance of abiding by the legal landscape. Hence, our system is meticulously crafted to operate entirely within the confines of the New Mexico Election Code, ensuring that every aspect of the voting process is compliant with state mandates.
+
+\begin{itemize}
+    \item Operates within the requirements of the New Mexico Election Code.
+\end{itemize}
+
+\newpage
+
+\printbibliography
+
+{\parindent0pt}
+
+\end{document}
