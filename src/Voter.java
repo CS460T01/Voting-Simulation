@@ -25,6 +25,11 @@ public class Voter implements Serializable {
         return ssn;
     }
 
+    public void markAsVoted() {
+        setHasVoted(true);
+    }
+
+
     public boolean getHasVoted() {
         return hasVoted;
     }

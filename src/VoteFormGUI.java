@@ -1,17 +1,20 @@
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -24,8 +27,13 @@ public class VoteFormGUI extends Application {
     Button prevButton;
     Button nextButton;
     VBox submitPromptBox;
-
+    private String voterID;
+    BallotCounterGUI ballotCounter = new BallotCounterGUI();
     Map<String, VBox> optionElements = new HashMap<>();
+
+    Register register = new Register();
+
+
 
     //testing this branch
 
@@ -94,6 +102,7 @@ public class VoteFormGUI extends Application {
         scrollPane.setFitToWidth(true);
         root.setCenter(scrollPane);
         root.setBottom(buttonBox);
+
 
         Scene scene = new Scene(root, 600, 700);
         primaryStage.setTitle("Ballot");
@@ -283,6 +292,42 @@ public class VoteFormGUI extends Application {
             e.printStackTrace();
         }
 
+        ElectionResults electionResults;
+
+        try (FileReader fileReader = new FileReader("voteCount.json")) {
+            electionResults = gson.fromJson(fileReader, ElectionResults.class);
+        } catch (IOException e) {
+            System.out.println("An error occurred while reading the results from the file.");
+            e.printStackTrace();
+            electionResults = new ElectionResults();
+        }
+
+        for (String position : positions) {
+            String selectedCandidate = selections.get(position);
+            if (selectedCandidate != null && !selectedCandidate.isEmpty()) {
+                Map<String, Integer> votesMap = position.equals("Governor") ?
+                        electionResults.getResult().getGovernor() : electionResults.getResult().getPresident();
+
+                // Increment the vote count for the selected candidate
+                if(!selectedCandidate.equals("CANDIDATE 2") && !selectedCandidate.equals(("CANDIDATE 1"))){
+                    selectedCandidate = "Other";
+                }
+                votesMap.put(selectedCandidate, votesMap.getOrDefault(selectedCandidate, 0) + 1);
+            }
+        }
+
+        // Convert the updated results object to a JSON string
+        String updatedJson = gson.toJson(electionResults);
+
+        // Save the updated JSON string to the file
+        try (FileWriter file = new FileWriter("voteCount.json")) {
+            file.write(updatedJson);
+            System.out.println("Updated results saved to voteCount.json");
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving the updated results to a file.");
+            e.printStackTrace();
+        }
+
         prevButton.setDisable(true);
         nextButton.setDisable(true);
         submitButton.setDisable(true);
@@ -359,6 +404,41 @@ public class VoteFormGUI extends Application {
 
     private static class BallotResult {
         Map<String, PositionResult> Ballot = new HashMap<>();
+    }
+
+    public static class ElectionResults {
+        private Result Result;
+
+
+        public Result getResult() {
+            return Result;
+        }
+
+        public void setResult(Result result) {
+            this.Result = result;
+        }
+
+        public static class Result {
+            private Map<String, Integer> Governor;
+            private Map<String, Integer> President;
+
+            // Getters and Setters
+            public Map<String, Integer> getGovernor() {
+                return Governor;
+            }
+
+            public void setGovernor(Map<String, Integer> governor) {
+                this.Governor = governor;
+            }
+
+            public Map<String, Integer> getPresident() {
+                return President;
+            }
+
+            public void setPresident(Map<String, Integer> president) {
+                this.President = president;
+            }
+        }
     }
 
     private static class PositionResult {

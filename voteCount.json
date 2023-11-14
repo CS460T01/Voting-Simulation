@@ -1,0 +1,14 @@
+{
+  "Result": {
+    "Governor": {
+      "CANDIDATE 1": 1,
+      "CANDIDATE 2": 2,
+      "Other": 1
+    },
+    "President": {
+      "CANDIDATE 1": 2,
+      "CANDIDATE 2": 1,
+      "Other": 1
+    }
+  }
+}

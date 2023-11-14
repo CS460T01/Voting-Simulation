@@ -1,14 +1,21 @@
+import com.google.gson.Gson;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 public class BallotCounterGUI extends Application {
+    private Map<String, Label> candidateVoteLabels = new HashMap<>();
+    private Gson gson = new Gson();
 
     public static void main(String[] args) {
         launch(args);
@@ -17,50 +24,59 @@ public class BallotCounterGUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
-
-        // Container for all content on the GUI
-        VBox contentBox = new VBox(5);
+        VBox contentBox = new VBox(10);
         contentBox.setPadding(new Insets(10));
-        contentBox.setMinHeight(600);
         contentBox.setFillWidth(true);
 
-        // Container for the header
-        VBox headerBox = new VBox(5);
-        headerBox.setAlignment(Pos.CENTER);
-        headerBox.setFillWidth(true);
-        headerBox.setStyle("-fx-border-color: white; -fx-padding: 10px; -fx-border-width: 3px;");
-
-        Label headerTitle = new Label("Header");
+        Label headerTitle = new Label("Election Results");
         headerTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
-        headerTitle.setAlignment(Pos.CENTER_LEFT);
+        headerTitle.setAlignment(Pos.CENTER);
         headerTitle.setMaxWidth(Double.MAX_VALUE);
-        headerBox.setSpacing(10);
-        headerBox.getChildren().addAll(headerTitle);
 
-        // Container for the vote counter
-        VBox voteCounterBox = new VBox(5);
-        voteCounterBox.setAlignment(Pos.CENTER);
-        voteCounterBox.setFillWidth(true);
-        voteCounterBox.setMinHeight(400);
-        voteCounterBox.setStyle("-fx-border-color: white; -fx-border-width: 3px; -fx-padding: 10px;");
+        // Read the election results from the file before creating the GUI elements
+        VoteFormGUI.ElectionResults electionResults = readElectionResults();
 
-        Label titleLabel = new Label("Total Votes:");
-        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
-        titleLabel.setAlignment(Pos.CENTER);
+        // Create the results boxes using the read election results
+        VBox governorResultsBox = createResultsBox("Governor", electionResults.getResult().getGovernor());
+        VBox presidentResultsBox = createResultsBox("President", electionResults.getResult().getPresident());
 
-        int votes = 0;
-        Label voteLabel = new Label(String.valueOf(votes));
-        voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
-        voteLabel.setAlignment(Pos.CENTER);
-
-        voteCounterBox.getChildren().addAll(titleLabel, voteLabel);
-        contentBox.getChildren().addAll(headerBox, voteCounterBox);
+        contentBox.getChildren().addAll(headerTitle, governorResultsBox, presidentResultsBox);
         root.setCenter(contentBox);
         root.setStyle("-fx-background-color: #25283e;");
 
         Scene scene = new Scene(root, 600, 600);
-        primaryStage.setTitle("Ballot Counter");
+        primaryStage.setTitle("Election Results");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private VBox createResultsBox(String position, Map<String, Integer> candidateVotes) {
+        VBox resultsBox = new VBox(10);
+        resultsBox.setAlignment(Pos.CENTER);
+        resultsBox.setFillWidth(true);
+        resultsBox.setStyle("-fx-border-color: white; -fx-border-width: 2px; -fx-padding: 10px;");
+
+        Label positionLabel = new Label(position + " Results");
+        positionLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
+        resultsBox.getChildren().add(positionLabel);
+
+        for (Map.Entry<String, Integer> entry : candidateVotes.entrySet()) {
+            Label candidateLabel = new Label(entry.getKey() + ": " + entry.getValue());
+            candidateLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px;");
+            resultsBox.getChildren().add(candidateLabel);
+            candidateVoteLabels.put(position + "_" + entry.getKey(), candidateLabel);
+        }
+
+        return resultsBox;
+    }
+
+    private VoteFormGUI.ElectionResults readElectionResults() {
+        VoteFormGUI.ElectionResults electionResults = new VoteFormGUI.ElectionResults();
+        try (FileReader reader = new FileReader("voteCount.json")) {
+            electionResults = gson.fromJson(reader, VoteFormGUI.ElectionResults.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return electionResults;
     }
 }
