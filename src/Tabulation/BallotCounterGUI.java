@@ -1,4 +1,6 @@
-import com.google.gson.Gson;
+package Tabulation;
+
+import Registration.Register;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -7,9 +9,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import java.io.FileReader;
-import java.io.IOException;
 
 public class BallotCounterGUI extends Application {
     private Register register = new Register();
