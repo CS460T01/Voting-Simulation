@@ -1,21 +1,24 @@
 package Tabulation;
 
-import Registration.Register;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class BallotCounterGUI extends Application {
-    private static int voteCount = 0;
+    private static int voteCount = 7;
     private Label voteLabel;
 
     public static void main(String[] args) {
@@ -26,17 +29,12 @@ public class BallotCounterGUI extends Application {
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
 
-        // Container for all content on the GUI
-        VBox contentBox = new VBox(5);
-        contentBox.setPadding(new Insets(10 ));
-        contentBox.setMinHeight(600);
-        contentBox.setFillWidth(true);
-
-        // Container for the header
         VBox headerBox = new VBox(5);
         headerBox.setAlignment(Pos.CENTER);
         headerBox.setFillWidth(true);
         headerBox.setStyle("-fx-border-color: white; -fx-padding: 10px; -fx-border-width: 3px;");
+        BorderPane.setMargin(headerBox, new Insets(5));
+        root.setTop(headerBox);
 
         Label headerTitle = new Label("Tabulator");
         headerTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
@@ -46,74 +44,84 @@ public class BallotCounterGUI extends Application {
         headerBox.getChildren().addAll(headerTitle);
 
         // Container for the vote counter
-        VBox voteCounterBox = new VBox(10); // Increased spacing for better layout
-        voteCounterBox.setAlignment(Pos.CENTER);
+        VBox voteCounterBox = new VBox();
         voteCounterBox.setFillWidth(true);
         voteCounterBox.setMinHeight(400);
         voteCounterBox.setStyle("-fx-border-color: white; -fx-border-width: 3px; -fx-padding: 10px;");
+        root.setCenter(voteCounterBox);
+        BorderPane.setMargin(voteCounterBox, new Insets(5));
 
-        Label castBallotLabel = new Label("Please cast your Ballot below!");
-        castBallotLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        castBallotLabel.setAlignment(Pos.CENTER);
+        VBox topContent = new VBox();
+        topContent.setAlignment(Pos.TOP_CENTER);
+        VBox.setMargin(topContent, new Insets(35, 0, 0, 0));
+
+        Label castBallotLabel = new Label("Cast your Ballot below!");
+        castBallotLabel.setStyle("-fx-text-fill: white; -fx-font-size: 30px;");
+        topContent.getChildren().add(castBallotLabel);
+
+        VBox bottomContent = new VBox(10);
+        bottomContent.setAlignment(Pos.BOTTOM_CENTER);
+        VBox.setVgrow(bottomContent, Priority.ALWAYS);
+        VBox.setMargin(bottomContent, new Insets(0, 0, 45, 0));
 
         Label titleLabel = new Label("Total Votes:");
-        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
-        titleLabel.setAlignment(Pos.CENTER);
+        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
 
-        Line divider = new Line(0, 0, 200, 0); // Width of 200
+        Line divider = new Line(0, 0, 200, 0);
         divider.setStyle("-fx-stroke: white; -fx-stroke-width: 2;");
 
-        voteLabel = new Label(String.valueOf(voteCount));
-        voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
-        voteLabel.setAlignment(Pos.CENTER);
+        voteLabel = new Label(String.format("%05d", voteCount));
+        voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 38px; -fx-font-weight: bold; -fx-font-family: monospace;");
 
         Button submitBallotButton = new Button("Submit Ballot");
         submitBallotButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
-            // Configure file chooser if needed
             fileChooser.showOpenDialog(primaryStage);
-            // Add logic to handle the selected file
         });
 
-        voteCounterBox.getChildren().addAll(castBallotLabel, titleLabel, divider, voteLabel, submitBallotButton);
+        bottomContent.getChildren().addAll(titleLabel, divider, voteLabel, submitBallotButton);
+        voteCounterBox.getChildren().addAll(topContent, bottomContent);
 
 
-
-        // Container for the footer
-        HBox footerBox = new HBox(5);
+        HBox footerBox = new HBox();
         footerBox.setFillHeight(true);
         footerBox.setStyle("-fx-border-color: white; -fx-padding: 10px; -fx-border-width: 3px;");
+        footerBox.setAlignment(Pos.CENTER);
+        BorderPane.setMargin(footerBox, new Insets(5));
+        root.setBottom(footerBox);
 
-        //footer content
-        //Location label
+
+
+        VBox leftSection = new VBox();
+        Label timeLabel = new Label();
+        timeLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        updateTime(timeLabel);
+
+        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> updateTime(timeLabel)),
+                new KeyFrame(Duration.minutes(1)));
+        clock.setCycleCount(Timeline.INDEFINITE);
+        clock.play();
+        timeLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        Label dateLabel = new Label("Date: ");
+        dateLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        leftSection.getChildren().addAll(timeLabel, dateLabel);
+
+        VBox centerSection = new VBox(2); // Spacing between location and ID
         Label locationLabel = new Label("Location: POLLING LOCATION 1");
         locationLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        locationLabel.setAlignment(Pos.CENTER_LEFT);
-        locationLabel.setMaxWidth(Double.MAX_VALUE);
-        footerBox.setSpacing(10);
-        footerBox.getChildren().addAll(locationLabel);
-
-        //Tabulator ID Label
         Label tabulatorIDLabel = new Label("Tabulator ID: 23480");
         tabulatorIDLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        tabulatorIDLabel.setAlignment(Pos.CENTER);
-        tabulatorIDLabel.setMaxWidth(Double.MAX_VALUE);
-        footerBox.setSpacing(10);
-        footerBox.getChildren().addAll(tabulatorIDLabel);
+        centerSection.getChildren().addAll(locationLabel, tabulatorIDLabel);
+        centerSection.setAlignment(Pos.CENTER);
 
-        //Firmware Label
+        VBox rightSection = new VBox();
+        rightSection.setAlignment(Pos.CENTER_RIGHT);
         Label firmwareLabel = new Label("Firmware: 1.0");
         firmwareLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        firmwareLabel.setAlignment(Pos.CENTER_RIGHT);
-        firmwareLabel.setMaxWidth(Double.MAX_VALUE);
-        footerBox.setSpacing(10);
-        footerBox.getChildren().addAll(firmwareLabel);
+        rightSection.getChildren().add(firmwareLabel);
 
-
-
-
-        contentBox.getChildren().addAll(headerBox, voteCounterBox, footerBox);
-        root.setCenter(contentBox);
+        footerBox.getChildren().addAll(leftSection, centerSection, rightSection);
+        HBox.setHgrow(centerSection, Priority.ALWAYS);
         root.setStyle("-fx-background-color: #25283e;");
 
         Scene scene = new Scene(root, 600, 600);
@@ -121,5 +129,11 @@ public class BallotCounterGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
+    private void updateTime(Label label) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        label.setText("Current Time: " + LocalTime.now().format(formatter));
+    }
+
 
 }
