@@ -1,3 +1,8 @@
+package Registration;
+
+import Registration.Register;
+import Registration.Voter;
+
 import java.time.LocalDate;
 
 public class TestRegistration {
