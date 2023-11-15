@@ -14,13 +14,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class BallotCounterGUI extends Application {
-    private static int voteCount = 7;
-    private Label voteLabel;
-
     public static void main(String[] args) {
         launch(args);
     }
@@ -36,7 +33,7 @@ public class BallotCounterGUI extends Application {
         BorderPane.setMargin(headerBox, new Insets(5));
         root.setTop(headerBox);
 
-        Label headerTitle = new Label("Tabulator");
+        Label headerTitle = new Label("Ballot Counter");
         headerTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         headerTitle.setAlignment(Pos.CENTER_LEFT);
         headerTitle.setMaxWidth(Double.MAX_VALUE);
@@ -70,7 +67,8 @@ public class BallotCounterGUI extends Application {
         Line divider = new Line(0, 0, 200, 0);
         divider.setStyle("-fx-stroke: white; -fx-stroke-width: 2;");
 
-        voteLabel = new Label(String.format("%05d", voteCount));
+        int voteCount = 7;
+        Label voteLabel = new Label(String.format("%05d", voteCount));
         voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 38px; -fx-font-weight: bold; -fx-font-family: monospace;");
 
         Button submitBallotButton = new Button("Submit Ballot");
@@ -94,16 +92,16 @@ public class BallotCounterGUI extends Application {
 
         VBox leftSection = new VBox();
         Label timeLabel = new Label();
+        Label dateLabel = new Label();
         timeLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        updateTime(timeLabel);
+        dateLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        updateTime(timeLabel, dateLabel); // Initial update
 
-        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> updateTime(timeLabel)),
-                new KeyFrame(Duration.minutes(1)));
+        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> updateTime(timeLabel, dateLabel)),
+                new KeyFrame(Duration.seconds(60)));
         clock.setCycleCount(Timeline.INDEFINITE);
         clock.play();
-        timeLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        Label dateLabel = new Label("Date: ");
-        dateLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+
         leftSection.getChildren().addAll(timeLabel, dateLabel);
 
         VBox centerSection = new VBox(2); // Spacing between location and ID
@@ -130,9 +128,12 @@ public class BallotCounterGUI extends Application {
         primaryStage.show();
     }
 
-    private void updateTime(Label label) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        label.setText("Current Time: " + LocalTime.now().format(formatter));
+    private void updateTime(Label timeLabel, Label dateLabel) {
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDateTime now = LocalDateTime.now();
+        timeLabel.setText(now.format(timeFormatter));
+        dateLabel.setText(now.format(dateFormatter));
     }
 
 
