@@ -1,3 +1,5 @@
+package Registration;
+
 import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -30,7 +32,7 @@ public class CheckInGUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         register = new Register();
-        primaryStage.setTitle("Voter Check-In");
+        primaryStage.setTitle("Registration.Voter Check-In");
         primaryStage.setResizable(false);
 
         GridPane grid = createGridPane();
@@ -57,7 +59,7 @@ public class CheckInGUI extends Application {
     }
 
     private void addUIControls(GridPane grid) {
-        Text header = new Text("Voter Check-In");
+        Text header = new Text("Registration.Voter Check-In");
         header.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         header.setFill(Color.DARKBLUE);
         GridPane.setColumnSpan(header, 2);
@@ -145,10 +147,10 @@ public class CheckInGUI extends Application {
                 actionTarget.setFill(Color.GREEN);
                 actionTarget.setText("Check-in successful!");
             } else {
-                actionTarget.setText("Check-in failed: Voter has already voted.");
+                actionTarget.setText("Check-in failed: Registration.Voter has already voted.");
             }
         } else {
-            actionTarget.setText("Check-in failed: Voter not found.");
+            actionTarget.setText("Check-in failed: Registration.Voter not found.");
         }
     }
 

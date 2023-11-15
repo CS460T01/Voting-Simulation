@@ -1,3 +1,5 @@
+package Ballot;
+
 import com.sun.speech.freetts.*;
 
 public class TextToSpeech {
@@ -7,7 +9,7 @@ public class TextToSpeech {
         System.setProperty("freetts.voices",
                 "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
 
-        // Register Engine
+        // Registration.Register Engine
         VoiceManager vm = VoiceManager.getInstance();
 
         // Finding a voice
