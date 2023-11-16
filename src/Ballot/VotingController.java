@@ -40,6 +40,7 @@ public class VotingController {
         }
     }
 
+
     // Method to get candidates for a position
     public String getCandidatesForPosition(String position) {
 
