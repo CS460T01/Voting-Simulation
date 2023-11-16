@@ -16,7 +16,6 @@ public class VoteFormGUI extends Application {
     private VotingController controller;
     VBox contentBox;
     int currentPage;
-    //Map<String, String> selections = new HashMap<>();
     Button submitButton;
     Button prevButton;
     Button nextButton;
@@ -41,7 +40,6 @@ public class VoteFormGUI extends Application {
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
         contentBox.setFillWidth(true);
-        //createVoterIdPage(primaryStage);
         currentPage = 1;
 
         buttonBox = new HBox();

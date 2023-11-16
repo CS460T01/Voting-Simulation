@@ -3,9 +3,6 @@ package Ballot;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class PositionResult {
     private List<String> candidates = new ArrayList<>();
     private String voterChoice;
