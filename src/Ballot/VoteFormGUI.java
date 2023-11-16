@@ -4,22 +4,18 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 public class VoteFormGUI extends Application {
-
+    private VotingController controller;
     VBox contentBox;
     int currentPage;
-    Map<String, String> selections = new HashMap<>();
     Button submitButton;
     Button prevButton;
     Button nextButton;
@@ -27,21 +23,23 @@ public class VoteFormGUI extends Application {
     VBox accessibilityPromptBox;
     HBox buttonBox;
     private String currentFontStyle = NORMAL_FONT_STYLE;
-    List<Map.Entry<String, List<String>>> offices;
-
-
+    String buttonHighContrastBackground = "-fx-background-color: #ffcc00; ";
+    String buttonHighContrastText = "-fx-text-fill: #0099ff; ";
+    String highContrastBackground = "-fx-background-color: #0099ff; ";
+    boolean HIGH_CONTRAST = false;
+    BorderPane root;
     private static final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
     private static final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
     Map<String, VBox> optionElements = new HashMap<>();
 
     @Override
     public void start(Stage primaryStage) {
-        BorderPane root = new BorderPane();
+        controller = new VotingController();
+        controller.initializeOffices();
+        root = new BorderPane(); // Initialize here
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
         contentBox.setFillWidth(true);
-        //createVoterIdPage(primaryStage);
-        initializeOffices();
         currentPage = 1;
 
         buttonBox = new HBox();
@@ -59,7 +57,7 @@ public class VoteFormGUI extends Application {
         submitButton.setStyle("-fx-font-size: 20px;");
         submitButton.setMaxWidth(Double.MAX_VALUE);
         submitButton.setVisible(false);
-        submitButton.setOnAction(e -> handleSubmit());
+        submitButton.setOnAction(e -> controller.handleSubmit());
 
         prevButton.setVisible(false);
         prevButton.setDisable(true);
@@ -73,15 +71,15 @@ public class VoteFormGUI extends Application {
         prevButton.setOnAction(e -> {
             System.out.println("Before Prev Action: " + currentPage);
 
-            if (currentPage == offices.size() + 1) {
+            if (currentPage == controller.getOffices().size() + 1) {
                 // We are on the submit page and want to go back to the last voting page
-                currentPage = offices.size();
+                currentPage = controller.getOffices().size();
                 createVotingPage(currentPage - 1);
                 buttonBox.getChildren().clear();
                 buttonBox.getChildren().addAll(prevButton,nextButton);
             } else if (currentPage > 1) {
                 // We are on a regular voting page and want to go back to the previous one
-                saveSelection(offices.get(currentPage - 1).getKey());
+                extractSaveData(controller.getOffices().get(currentPage - 1).getKey());
                 currentPage -= 2; // We need to subtract 2 because createVotingPage will add 1 back
                 createVotingPage(currentPage);
             }
@@ -93,9 +91,9 @@ public class VoteFormGUI extends Application {
         nextButton.setOnAction(e -> {
             System.out.println("Before Next Action: " + currentPage);
 
-            if (currentPage <= offices.size()) {
-                saveSelection(offices.get(currentPage - 1).getKey());
-                if (currentPage < offices.size()) {
+            if (currentPage <= controller.getOffices().size()) {
+                extractSaveData(controller.getOffices().get(currentPage - 1).getKey());
+                if (currentPage < controller.getOffices().size()) {
                     createVotingPage(currentPage); // This will increment currentPage
                 }
 
@@ -104,6 +102,7 @@ public class VoteFormGUI extends Application {
                     currentPage++; // Manually increment because createSubmitPrompt doesn't increment currentPage
                     buttonBox.getChildren().clear();
                     buttonBox.getChildren().addAll(prevButton,submitButton);
+                    submitButton.setStyle(getButtonStyle(currentFontStyle));
                     //submitButton.setVisible(true);
                     //nextButton.setVisible(false);
                     updateButtonVisibility();
@@ -116,7 +115,7 @@ public class VoteFormGUI extends Application {
 
 
 
-        createAccessibilityOptionsPage(primaryStage);
+        createAccessibilityOptionsPage(primaryStage, root);
 
         ScrollPane scrollPane = new ScrollPane(contentBox);
         scrollPane.setFitToWidth(true);
@@ -126,12 +125,14 @@ public class VoteFormGUI extends Application {
         //createVotingPage(0);
 
         Scene scene = new Scene(root, 600, 700);
+
         primaryStage.setTitle("Ballot");
         primaryStage.setScene(scene);
         primaryStage.show();
 
         //showVoterIdDialog(primaryStage);
     }
+
 
     private void handleCheckBoxAction(CheckBox selectedCheckBox, VBox optionBox) {
         if (selectedCheckBox.isSelected()) {
@@ -182,38 +183,7 @@ public class VoteFormGUI extends Application {
         return optionBox;
     }
 
-    private void saveSelection(String position) {
-        VBox options = optionElements.get(position);
-        if (options != null) {
-            // Initialize the write-in checkbox and text field references
-            CheckBox writeInCheckBox = null;
-            TextField writeInField = null;
 
-            // Find the write-in checkbox and text field
-            for (Node node : options.getChildren()) {
-                if (node instanceof CheckBox && "Write-in".equals(((CheckBox) node).getText())) {
-                    writeInCheckBox = (CheckBox) node;
-                } else if (node instanceof TextField) {
-                    writeInField = (TextField) node;
-                }
-            }
-
-            // Check if the write-in checkbox is selected and the text field is not empty
-            if (writeInCheckBox != null && writeInCheckBox.isSelected() && writeInField != null && !writeInField.getText().isEmpty()) {
-                selections.put(position, "Write-in: " + writeInField.getText());
-            } else {
-                // If not, find which checkbox is selected
-                for (Node node : options.getChildren()) {
-                    if (node instanceof CheckBox && ((CheckBox) node).isSelected()) {
-                        selections.put(position, ((CheckBox) node).getText());
-                        return;
-                    }
-                }
-                // If no checkboxes are selected, remove the position from the selections
-                selections.remove(position);
-            }
-        }
-    }
 
     private VBox createHeader(String position, String instructions) {
         VBox headerDescriptionBox = new VBox(5);
@@ -270,48 +240,45 @@ public class VoteFormGUI extends Application {
 
         return headerDescriptionBox;
     }
+    public void extractSaveData(String position) {
+        VBox options = optionElements.get(position);
+        if (options != null) {
+            // Initialize the write-in checkbox and text field references
+            CheckBox writeInCheckBox = null;
+            TextField writeInField = null;
 
-    private void handleSubmit() {
-        System.out.println("Voting Results:");
+            // Find the write-in checkbox and text field
+            for (Node node : options.getChildren()) {
+                if (node instanceof CheckBox && "Write-in".equals(((CheckBox) node).getText())) {
+                    writeInCheckBox = (CheckBox) node;
+                } else if (node instanceof TextField) {
+                    writeInField = (TextField) node;
+                }
+            }
 
-        BallotResult ballotResult = new BallotResult();
-
-        for (Map.Entry<String, List<String>> officeEntry : offices) {
-            String position = officeEntry.getKey();
-            List<String> candidatesList = officeEntry.getValue();
-
-            PositionResult positionResult = new PositionResult();
-            positionResult.Candidates.addAll(candidatesList);
-            positionResult.Voter_Choice = selections.getOrDefault(position, "");
-
-            ballotResult.Ballot.put(position, positionResult);
-
-            // Print the voting result for the current position
-            System.out.println(position + ": " + positionResult.Voter_Choice);
+            // Check if the write-in checkbox is selected and the text field is not empty
+            if (writeInCheckBox != null && writeInCheckBox.isSelected() && writeInField != null && !writeInField.getText().isEmpty()) {
+                //selections.put(position, "Write-in: " + writeInField.getText());
+                controller.saveSelection(position, "Write-in: " + writeInField.getText());
+            } else {
+                // If not, find which checkbox is selected
+                for (Node node : options.getChildren()) {
+                    if (node instanceof CheckBox && ((CheckBox) node).isSelected()) {
+                        //selections.put(position, ((CheckBox) node).getText());
+                        controller.saveSelection(position, ((CheckBox) node).getText());
+                        return;
+                    }
+                }
+                // If no checkboxes are selected, remove the position from the selections
+                //selections.remove(position);
+                controller.saveSelection(position, "null");
+            }
         }
-
-        // Convert the results object to a JSON string
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(ballotResult);
-
-        // Save the JSON string to a file
-        try (FileWriter file = new FileWriter("votingResults.json")) {
-            file.write(json);
-            System.out.println("Results saved to votingResults.json");
-        } catch (IOException e) {
-            System.out.println("An error occurred while saving the results to a file.");
-            e.printStackTrace();
-        }
-
-        prevButton.setDisable(true);
-        nextButton.setDisable(true);
-        submitButton.setDisable(true);
     }
-
     private void restoreSelections(String position) {
         VBox options = optionElements.get(position);
-        if (options != null && selections.containsKey(position)) {
-            String selectedOption = selections.get(position);
+        if (options != null && controller.selectionContainsKey(position)) {
+            String selectedOption = controller.getCandidatesForPosition(position);
 
             // Find the write-in checkbox and text field
             CheckBox writeInCheckBox = null;
@@ -357,7 +324,7 @@ public class VoteFormGUI extends Application {
             submitButton.setStyle(currentFontStyle);
             submitButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             HBox.setHgrow(submitButton, Priority.ALWAYS);
-            submitButton.setOnAction(e -> handleSubmit());
+            submitButton.setOnAction(e -> controller.handleSubmit());
 
             submitPromptBox.getChildren().addAll(promptLabel);
             buttonBox.getChildren().clear();
@@ -378,7 +345,7 @@ public class VoteFormGUI extends Application {
     }
 
     private void updateButtonVisibility() {
-        int totalVotingPages = offices.size();
+        int totalVotingPages = controller.getOffices().size();
 
         prevButton.setVisible(currentPage > 0);
         prevButton.setDisable(currentPage <= 0);
@@ -391,7 +358,7 @@ public class VoteFormGUI extends Application {
     }
 
 
-    private void createAccessibilityOptionsPage(Stage primaryStage) {
+    private void createAccessibilityOptionsPage(Stage primaryStage, Pane rootPane) {
         contentBox.getChildren().clear();
         buttonBox.getChildren().clear();
         Button confirmButton = new Button("Confirm");
@@ -401,22 +368,53 @@ public class VoteFormGUI extends Application {
         accessibilityPromptBox.setFillWidth(true);
         accessibilityPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
         accessibilityPromptBox.setMaxWidth(Double.MAX_VALUE);
+        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
+        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
+        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
 
         Label accessibilityLabel = new Label("Select Accessibility Options:");
         accessibilityLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;"); // Use the current font style
 
-        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
         largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
         largerFontCheckbox.setSelected(currentFontStyle.equals(LARGE_FONT_STYLE)); // Set selected based on current style
         largerFontCheckbox.setOnAction(e -> {
-            String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
-            updateFontSize(newStyle);
+            //String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
+
+            if (largerFontCheckbox.isSelected()) {
+                largerFontCheckbox.setStyle(LARGE_FONT_STYLE);
+                highContrastCheckbox.setStyle(LARGE_FONT_STYLE);
+                textToSpeechCheckbox.setStyle(LARGE_FONT_STYLE);
+                confirmButton.setStyle(getButtonStyle(LARGE_FONT_STYLE));
+                updateFontSize(LARGE_FONT_STYLE, "");
+            }
+            else {
+                largerFontCheckbox.setStyle(NORMAL_FONT_STYLE);
+                highContrastCheckbox.setStyle(NORMAL_FONT_STYLE);
+                textToSpeechCheckbox.setStyle(NORMAL_FONT_STYLE);
+                confirmButton.setStyle(getButtonStyle(NORMAL_FONT_STYLE));
+                updateFontSize(NORMAL_FONT_STYLE, "");
+            }
+
+
         });
 
-        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
         highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
+        highContrastCheckbox.setOnAction(e -> {
+            if (highContrastCheckbox.isSelected()) {
+                HIGH_CONTRAST = true;
+                confirmButton.setStyle(getButtonStyle(currentFontStyle));
+                updateButtonVisibility();
+                applyHighContrastStyle(root);
 
-        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
+            } else {
+                HIGH_CONTRAST = false;
+                confirmButton.setStyle(getButtonStyle(currentFontStyle));
+                updateButtonVisibility();
+                contentBox.setStyle("");
+                removeHighContrastStyle(root);
+            }
+        });
+
         textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
 
         confirmButton.setStyle(currentFontStyle); // Use the current font style
@@ -427,9 +425,7 @@ public class VoteFormGUI extends Application {
             if (largerFontCheckbox.isSelected()) {
                 // Apply larger font settings across the UI
             }
-            if (highContrastCheckbox.isSelected()) {
-                // Apply high contrast settings across the UI
-            }
+
             if (textToSpeechCheckbox.isSelected()) {
                 // Activate text to speech functionality
             }
@@ -451,12 +447,54 @@ public class VoteFormGUI extends Application {
 
     }
 
-    private void updateFontSize(String fontSizeStyle) {
-        currentFontStyle = fontSizeStyle; // Update the current font style
-        applyCurrentFontStyleToUI(); // Apply the new font style to the UI
+    private void applyHighContrastStyle(Parent parent) {
+        HIGH_CONTRAST = true;
+
+        // Check if the parent is one of the container types
+        if (parent instanceof Pane || parent instanceof VBox || parent instanceof HBox || parent instanceof BorderPane || parent instanceof StackPane) {
+            // Apply high contrast style selectively
+            String existingStyle = parent.getStyle();
+            if (!(parent instanceof TextField) && !(parent instanceof CheckBox)) {
+                // Preserve existing styles (like borders) and append only the background color
+                parent.setStyle(existingStyle + highContrastBackground);
+            }
+        }
+
+        // Recursively apply the style, skipping text fields and checkboxes
+        for (Node child : parent.getChildrenUnmodifiable()) {
+            if (child instanceof Parent && !(child instanceof TextField) && !(child instanceof CheckBox)) {
+                applyHighContrastStyle((Parent) child);
+            }
+        }
     }
 
-    private void applyCurrentFontStyleToUI() {
+
+    private void removeHighContrastStyle(Parent parent) {
+        HIGH_CONTRAST = false;
+
+        // Reset only the high contrast specific styles
+        if (parent instanceof Pane || parent instanceof VBox || parent instanceof HBox || parent instanceof BorderPane || parent instanceof StackPane) {
+            String existingStyle = parent.getStyle();
+            // Remove only the high contrast background color, preserving other styles
+            existingStyle = existingStyle.replace(highContrastBackground, "");
+            parent.setStyle(existingStyle);
+        }
+
+        // Recursively reset the style for child nodes that are containers
+        for (Node child : parent.getChildrenUnmodifiable()) {
+            if (child instanceof Parent) {
+                removeHighContrastStyle((Parent) child);
+            }
+        }
+    }
+
+
+    private void updateFontSize(String fontSizeStyle, String color) {
+        currentFontStyle = fontSizeStyle; // Update the current font style
+        applyCurrentFontStyleToUI(color); // Apply the new font style to the UI
+    }
+
+    private void applyCurrentFontStyleToUI(String color) {
         // Update the style for buttons as an example
         prevButton.setStyle(currentFontStyle);
         nextButton.setStyle(currentFontStyle);
@@ -468,38 +506,42 @@ public class VoteFormGUI extends Application {
     }
 
     private void updateFontSizeRecursive(Pane parent, String fontSizeStyle) {
+        String highContrastColor = "-fx-text-fill: yellow;"; // Replace 'yellow' with your desired color
+        String combinedStyle;
+
+        if(HIGH_CONTRAST == true) {
+            combinedStyle = fontSizeStyle + highContrastColor; // Combine font size and text color
+        }
+        else{combinedStyle = fontSizeStyle + "";}
+
         for (Node child : parent.getChildren()) {
             if (child instanceof Text) {
-                ((Text) child).setStyle(fontSizeStyle);
+                ((Text) child).setStyle(combinedStyle);
             } else if (child instanceof Label) {
-                ((Label) child).setStyle(fontSizeStyle);
+                ((Label) child).setStyle(combinedStyle);
             } else if (child instanceof Button) {
-                ((Button) child).setStyle(fontSizeStyle);
+                // For Buttons, you might want to only change the text size and not the text color
+                // If you want to change both, use combinedStyle
+                ((Button) child).setStyle(combinedStyle);
             } else if (child instanceof CheckBox) {
-                ((CheckBox) child).setStyle(fontSizeStyle);
+                ((CheckBox) child).setStyle(combinedStyle);
             } else if (child instanceof TextField) {
-                ((TextField) child).setStyle(fontSizeStyle);
+                // For TextFields, you might want to only change the text size and not the text color
+                // If you want to change both, use combinedStyle
+                ((TextField) child).setStyle(combinedStyle);
             } else if (child instanceof Pane) {
                 updateFontSizeRecursive((Pane) child, fontSizeStyle);
             }
         }
     }
 
-    private void initializeOffices() {
-        offices = new ArrayList<>();
-        offices.add(new AbstractMap.SimpleEntry<>("Governor", Arrays.asList("1","Michelle Lujan Grisham", "Susana Martinez")));
-        offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList("2","Tim Keller", "Jehiel Luciana", "Džejlana Avedis")));
-        offices.add(new AbstractMap.SimpleEntry<>("Senator", Arrays.asList("3","Ben Ray Lujan", "Martin Heinrich")));
-        offices.add(new AbstractMap.SimpleEntry<>("Dog", Arrays.asList("4","Husky", "Golden retriever", "German Shepard")));
-        // Add more offices and candidates as needed
-    }
-
     private void createVotingPage(int pageIndex) {
-        if (pageIndex < 0 || pageIndex >= offices.size()) {
+        if (pageIndex < 0 || pageIndex >= controller.getOffices().size()) {
             return; // Index out of bounds
         }
 
-        Map.Entry<String, List<String>> office = offices.get(pageIndex);
+        List<Map.Entry<String, List<String>>> offices = controller.getOffices();
+        Map.Entry<String, List<String>> office = offices.get(pageIndex); // Get the specific office entry
         contentBox.getChildren().clear();
 
         VBox headerDescriptionBox = createHeader(office.getKey(), "(Vote for One)");
@@ -507,11 +549,25 @@ public class VoteFormGUI extends Application {
 
         contentBox.getChildren().addAll(headerDescriptionBox, optionsBox);
         restoreSelections(office.getKey()); // Restore selections for this position
-        applyCurrentFontStyleToUI();
+        applyCurrentFontStyleToUI("");
+
+        if(HIGH_CONTRAST == true) {
+            nextButton.setStyle(getButtonStyle(currentFontStyle));
+            prevButton.setStyle(getButtonStyle(currentFontStyle));
+        }
 
         currentPage = pageIndex + 1; // Update current page index
         System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility(); // Update the visibility of navigation buttons
+    }
+
+
+    private String getButtonStyle(String currentFontStyle) {
+        if(HIGH_CONTRAST == true) {
+            return buttonHighContrastBackground + buttonHighContrastText + currentFontStyle;
+        }
+
+        else{return currentFontStyle;}
     }
 
     public static void main(String[] args) {
