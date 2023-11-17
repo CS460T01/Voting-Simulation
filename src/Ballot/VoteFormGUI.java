@@ -23,10 +23,6 @@ public class VoteFormGUI extends Application {
     VBox submitPromptBox;
     VBox accessibilityPromptBox;
     HBox buttonBox;
-
-    String buttonHighContrastBackground = "-fx-background-color: #ffcc00; ";
-    String buttonHighContrastText = "-fx-text-fill: #0099ff; ";
-    String highContrastBackground = "-fx-background-color: #0099ff; ";
     boolean HIGH_CONTRAST = false;
     BorderPane root;
     private final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
@@ -38,7 +34,7 @@ public class VoteFormGUI extends Application {
     public void start(Stage primaryStage) {
         controller = new VotingController();
         controller.initializeOffices();
-        accessibilityOptions = new AccessibilityOptions(NORMAL_FONT_STYLE, false, "-fx-background-color: #0099ff;");
+        accessibilityOptions = new AccessibilityOptions(NORMAL_FONT_STYLE, false);
         root = new BorderPane(); // Initialize here
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
@@ -67,9 +63,7 @@ public class VoteFormGUI extends Application {
         nextButton.setVisible(false);
         nextButton.setDisable(true);
 
-
         buttonBox.getChildren().addAll(prevButton, nextButton, submitButton);
-
 
         prevButton.setOnAction(e -> {
             System.out.println("Before Prev Action: " + currentPage);
@@ -105,7 +99,7 @@ public class VoteFormGUI extends Application {
                     currentPage++; // Manually increment because createSubmitPrompt doesn't increment currentPage
                     buttonBox.getChildren().clear();
                     buttonBox.getChildren().addAll(prevButton,submitButton);
-                    submitButton.setStyle(getButtonStyle(currentFontStyle));
+                    submitButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
                     //submitButton.setVisible(true);
                     //nextButton.setVisible(false);
                     updateButtonVisibility();
@@ -136,6 +130,94 @@ public class VoteFormGUI extends Application {
         //showVoterIdDialog(primaryStage);
     }
 
+    private void createAccessibilityOptionsPage(Stage primaryStage, Pane rootPane) {
+        contentBox.getChildren().clear();
+        buttonBox.getChildren().clear();
+        Button confirmButton = new Button("Confirm");
+
+        accessibilityPromptBox = new VBox(20);
+        accessibilityPromptBox.setAlignment(Pos.CENTER);
+        accessibilityPromptBox.setFillWidth(true);
+        accessibilityPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+        accessibilityPromptBox.setMaxWidth(Double.MAX_VALUE);
+        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
+        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
+        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
+
+        Label accessibilityLabel = new Label("Select Accessibility Options:");
+        accessibilityLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;"); // Use the current font style
+
+        largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
+        largerFontCheckbox.setSelected(currentFontStyle.equals(LARGE_FONT_STYLE)); // Set selected based on current style
+        largerFontCheckbox.setOnAction(e -> {
+            //String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
+
+            if (largerFontCheckbox.isSelected()) {
+                largerFontCheckbox.setStyle(LARGE_FONT_STYLE);
+                highContrastCheckbox.setStyle(LARGE_FONT_STYLE);
+                textToSpeechCheckbox.setStyle(LARGE_FONT_STYLE);
+                confirmButton.setStyle(accessibilityOptions.getButtonStyle(LARGE_FONT_STYLE));
+                applyCurrentFontStyleToUI(LARGE_FONT_STYLE, "");
+            }
+            else {
+                largerFontCheckbox.setStyle(NORMAL_FONT_STYLE);
+                highContrastCheckbox.setStyle(NORMAL_FONT_STYLE);
+                textToSpeechCheckbox.setStyle(NORMAL_FONT_STYLE);
+                confirmButton.setStyle(accessibilityOptions.getButtonStyle(NORMAL_FONT_STYLE));
+                applyCurrentFontStyleToUI(NORMAL_FONT_STYLE, "");
+            }
+
+
+        });
+
+        highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
+        highContrastCheckbox.setOnAction(e -> {
+            if (highContrastCheckbox.isSelected()) {
+                HIGH_CONTRAST = true;
+                confirmButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
+                updateButtonVisibility();
+                accessibilityOptions.applyHighContrastStyle(root);
+
+            } else {
+                HIGH_CONTRAST = false;
+                confirmButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
+                updateButtonVisibility();
+                contentBox.setStyle("");
+                accessibilityOptions.removeHighContrastStyle(root);
+            }
+        });
+
+        textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
+
+        confirmButton.setStyle(currentFontStyle); // Use the current font style
+        confirmButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        HBox.setHgrow(confirmButton, Priority.ALWAYS); // Make the button grow horizontally
+
+        confirmButton.setOnAction(e -> {
+            if (largerFontCheckbox.isSelected()) {
+                // Apply larger font settings across the UI
+            }
+
+            if (textToSpeechCheckbox.isSelected()) {
+                // Activate text to speech functionality
+            }
+
+            createVotingPage(0); // Navigate to the first voting page
+            //currentPage = 1;
+            updateButtonVisibility();
+            confirmButton.setVisible(false);
+            buttonBox.getChildren().clear();
+            buttonBox.getChildren().addAll(prevButton, nextButton); // Add back the navigation buttons
+            updateButtonVisibility(); // Make sure to update the visibility based on the current page
+
+            //createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
+        });
+
+        accessibilityPromptBox.getChildren().addAll(accessibilityLabel);
+        contentBox.getChildren().addAll(accessibilityPromptBox, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
+        buttonBox.getChildren().add(confirmButton);
+
+    }
 
     private void handleCheckBoxAction(CheckBox selectedCheckBox, VBox optionBox) {
         if (selectedCheckBox.isSelected()) {
@@ -185,8 +267,6 @@ public class VoteFormGUI extends Application {
 
         return optionBox;
     }
-
-
 
     private VBox createHeader(String position, String instructions) {
         VBox headerDescriptionBox = new VBox(5);
@@ -349,96 +429,6 @@ public class VoteFormGUI extends Application {
         submitButton.setVisible(currentPage == totalVotingPages + 1);
     }
 
-
-    private void createAccessibilityOptionsPage(Stage primaryStage, Pane rootPane) {
-        contentBox.getChildren().clear();
-        buttonBox.getChildren().clear();
-        Button confirmButton = new Button("Confirm");
-
-        accessibilityPromptBox = new VBox(20);
-        accessibilityPromptBox.setAlignment(Pos.CENTER);
-        accessibilityPromptBox.setFillWidth(true);
-        accessibilityPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
-        accessibilityPromptBox.setMaxWidth(Double.MAX_VALUE);
-        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
-        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
-        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
-
-        Label accessibilityLabel = new Label("Select Accessibility Options:");
-        accessibilityLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;"); // Use the current font style
-
-        largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
-        largerFontCheckbox.setSelected(currentFontStyle.equals(LARGE_FONT_STYLE)); // Set selected based on current style
-        largerFontCheckbox.setOnAction(e -> {
-            //String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
-
-            if (largerFontCheckbox.isSelected()) {
-                largerFontCheckbox.setStyle(LARGE_FONT_STYLE);
-                highContrastCheckbox.setStyle(LARGE_FONT_STYLE);
-                textToSpeechCheckbox.setStyle(LARGE_FONT_STYLE);
-                confirmButton.setStyle(getButtonStyle(LARGE_FONT_STYLE));
-                applyCurrentFontStyleToUI(LARGE_FONT_STYLE, "");
-            }
-            else {
-                largerFontCheckbox.setStyle(NORMAL_FONT_STYLE);
-                highContrastCheckbox.setStyle(NORMAL_FONT_STYLE);
-                textToSpeechCheckbox.setStyle(NORMAL_FONT_STYLE);
-                confirmButton.setStyle(getButtonStyle(NORMAL_FONT_STYLE));
-                applyCurrentFontStyleToUI(NORMAL_FONT_STYLE, "");
-            }
-
-
-        });
-
-        highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
-        highContrastCheckbox.setOnAction(e -> {
-            if (highContrastCheckbox.isSelected()) {
-                HIGH_CONTRAST = true;
-                confirmButton.setStyle(getButtonStyle(currentFontStyle));
-                updateButtonVisibility();
-                accessibilityOptions.applyHighContrastStyle(root);
-
-            } else {
-                HIGH_CONTRAST = false;
-                confirmButton.setStyle(getButtonStyle(currentFontStyle));
-                updateButtonVisibility();
-                contentBox.setStyle("");
-                accessibilityOptions.removeHighContrastStyle(root);
-            }
-        });
-
-        textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
-
-        confirmButton.setStyle(currentFontStyle); // Use the current font style
-        confirmButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        HBox.setHgrow(confirmButton, Priority.ALWAYS); // Make the button grow horizontally
-
-        confirmButton.setOnAction(e -> {
-            if (largerFontCheckbox.isSelected()) {
-                // Apply larger font settings across the UI
-            }
-
-            if (textToSpeechCheckbox.isSelected()) {
-                // Activate text to speech functionality
-            }
-
-            createVotingPage(0); // Navigate to the first voting page
-            //currentPage = 1;
-            updateButtonVisibility();
-            confirmButton.setVisible(false);
-            buttonBox.getChildren().clear();
-            buttonBox.getChildren().addAll(prevButton, nextButton); // Add back the navigation buttons
-            updateButtonVisibility(); // Make sure to update the visibility based on the current page
-
-            //createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
-        });
-
-        accessibilityPromptBox.getChildren().addAll(accessibilityLabel);
-        contentBox.getChildren().addAll(accessibilityPromptBox, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
-        buttonBox.getChildren().add(confirmButton);
-
-    }
-
     private void applyCurrentFontStyleToUI(String fontSizeStyle, String color) {
         currentFontStyle = fontSizeStyle;
         // Update the style for buttons as an example
@@ -468,8 +458,8 @@ public class VoteFormGUI extends Application {
         applyCurrentFontStyleToUI(currentFontStyle,"");
 
         if(HIGH_CONTRAST == true) {
-            nextButton.setStyle(getButtonStyle(currentFontStyle));
-            prevButton.setStyle(getButtonStyle(currentFontStyle));
+            nextButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
+            prevButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
         }
 
         currentPage = pageIndex + 1; // Update current page index
@@ -478,13 +468,6 @@ public class VoteFormGUI extends Application {
     }
 
 
-    private String getButtonStyle(String currentFontStyle) {
-        if(HIGH_CONTRAST == true) {
-            return buttonHighContrastBackground + buttonHighContrastText + currentFontStyle;
-        }
-
-        else{return currentFontStyle;}
-    }
 
     public static void main(String[] args) {
         launch(args);

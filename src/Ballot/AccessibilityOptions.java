@@ -12,12 +12,15 @@ import javafx.scene.text.Text;
 public class AccessibilityOptions {
     private String currentFontStyle;
     private boolean highContrast;
-    private String highContrastBackground;
 
-    public AccessibilityOptions(String currentFontStyle, boolean highContrast, String highContrastBackground) {
+    String buttonHighContrastBackground = "-fx-background-color: #ffcc00; ";
+    String buttonHighContrastText = "-fx-text-fill: #0099ff; ";
+    String highContrastBackground = "-fx-background-color: #0099ff; ";
+
+    public AccessibilityOptions(String currentFontStyle, boolean highContrast) {
         this.currentFontStyle = currentFontStyle;
         this.highContrast = highContrast;
-        this.highContrastBackground = highContrastBackground;
+
     }
 
     // Method to apply high contrast style
@@ -92,6 +95,13 @@ public class AccessibilityOptions {
     }
 
 
+    public String getButtonStyle(String currentFontStyle) {
+        if(this.highContrast == true) {
+            return buttonHighContrastBackground + buttonHighContrastText + currentFontStyle;
+        }
+
+        else{return currentFontStyle;}
+    }
 
 
 
