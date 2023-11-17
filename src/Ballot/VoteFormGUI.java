@@ -466,9 +466,6 @@ public class VoteFormGUI extends Application {
         System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility(); // Update the visibility of navigation buttons
     }
-
-
-
     public static void main(String[] args) {
         launch(args);
     }

@@ -94,7 +94,6 @@ public class AccessibilityOptions {
         }
     }
 
-
     public String getButtonStyle(String currentFontStyle) {
         if(this.highContrast == true) {
             return buttonHighContrastBackground + buttonHighContrastText + currentFontStyle;
@@ -102,7 +101,5 @@ public class AccessibilityOptions {
 
         else{return currentFontStyle;}
     }
-
-
 
 }
