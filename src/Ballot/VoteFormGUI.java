@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 import java.util.*;
 
 public class VoteFormGUI extends Application {
+    private AccessibilityOptions accessibilityOptions;
     private VotingController controller;
     VBox contentBox;
     int currentPage;
@@ -36,6 +37,7 @@ public class VoteFormGUI extends Application {
     public void start(Stage primaryStage) {
         controller = new VotingController();
         controller.initializeOffices();
+        accessibilityOptions = new AccessibilityOptions(NORMAL_FONT_STYLE, false, "-fx-background-color: #0099ff;");
         root = new BorderPane(); // Initialize here
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
@@ -404,14 +406,14 @@ public class VoteFormGUI extends Application {
                 HIGH_CONTRAST = true;
                 confirmButton.setStyle(getButtonStyle(currentFontStyle));
                 updateButtonVisibility();
-                applyHighContrastStyle(root);
+                accessibilityOptions.applyHighContrastStyle(root);
 
             } else {
                 HIGH_CONTRAST = false;
                 confirmButton.setStyle(getButtonStyle(currentFontStyle));
                 updateButtonVisibility();
                 contentBox.setStyle("");
-                removeHighContrastStyle(root);
+                accessibilityOptions.removeHighContrastStyle(root);
             }
         });
 
@@ -447,46 +449,10 @@ public class VoteFormGUI extends Application {
 
     }
 
-    private void applyHighContrastStyle(Parent parent) {
-        HIGH_CONTRAST = true;
-
-        // Check if the parent is one of the container types
-        if (parent instanceof Pane || parent instanceof VBox || parent instanceof HBox || parent instanceof BorderPane || parent instanceof StackPane) {
-            // Apply high contrast style selectively
-            String existingStyle = parent.getStyle();
-            if (!(parent instanceof TextField) && !(parent instanceof CheckBox)) {
-                // Preserve existing styles (like borders) and append only the background color
-                parent.setStyle(existingStyle + highContrastBackground);
-            }
-        }
-
-        // Recursively apply the style, skipping text fields and checkboxes
-        for (Node child : parent.getChildrenUnmodifiable()) {
-            if (child instanceof Parent && !(child instanceof TextField) && !(child instanceof CheckBox)) {
-                applyHighContrastStyle((Parent) child);
-            }
-        }
-    }
 
 
-    private void removeHighContrastStyle(Parent parent) {
-        HIGH_CONTRAST = false;
 
-        // Reset only the high contrast specific styles
-        if (parent instanceof Pane || parent instanceof VBox || parent instanceof HBox || parent instanceof BorderPane || parent instanceof StackPane) {
-            String existingStyle = parent.getStyle();
-            // Remove only the high contrast background color, preserving other styles
-            existingStyle = existingStyle.replace(highContrastBackground, "");
-            parent.setStyle(existingStyle);
-        }
 
-        // Recursively reset the style for child nodes that are containers
-        for (Node child : parent.getChildrenUnmodifiable()) {
-            if (child instanceof Parent) {
-                removeHighContrastStyle((Parent) child);
-            }
-        }
-    }
 
 
     private void updateFontSize(String fontSizeStyle, String color) {
