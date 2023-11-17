@@ -23,14 +23,15 @@ public class VoteFormGUI extends Application {
     VBox submitPromptBox;
     VBox accessibilityPromptBox;
     HBox buttonBox;
-    private String currentFontStyle = NORMAL_FONT_STYLE;
+
     String buttonHighContrastBackground = "-fx-background-color: #ffcc00; ";
     String buttonHighContrastText = "-fx-text-fill: #0099ff; ";
     String highContrastBackground = "-fx-background-color: #0099ff; ";
     boolean HIGH_CONTRAST = false;
     BorderPane root;
-    private static final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
-    private static final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
+    private final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
+    private final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
+    private String currentFontStyle = NORMAL_FONT_STYLE;
     Map<String, VBox> optionElements = new HashMap<>();
 
     @Override
@@ -438,11 +439,6 @@ public class VoteFormGUI extends Application {
 
     }
 
-//    private void updateFontSize(String fontSizeStyle, String color) {
-//        currentFontStyle = fontSizeStyle; // Update the current font style
-//        applyCurrentFontStyleToUI(color); // Apply the new font style to the UI
-//    }
-
     private void applyCurrentFontStyleToUI(String fontSizeStyle, String color) {
         currentFontStyle = fontSizeStyle;
         // Update the style for buttons as an example
@@ -451,38 +447,8 @@ public class VoteFormGUI extends Application {
         submitButton.setStyle(currentFontStyle);
 
         // Apply the current font style to the options and headers
-        optionElements.values().forEach(optionBox -> updateFontSizeRecursive(optionBox, currentFontStyle));
+        optionElements.values().forEach(optionBox -> accessibilityOptions.updateFontSizeRecursive(optionBox, currentFontStyle));
         // You might need additional lines here to update other parts of the UI
-    }
-
-    private void updateFontSizeRecursive(Pane parent, String fontSizeStyle) {
-        String highContrastColor = "-fx-text-fill: yellow;"; // Replace 'yellow' with your desired color
-        String combinedStyle;
-
-        if(HIGH_CONTRAST == true) {
-            combinedStyle = fontSizeStyle + highContrastColor; // Combine font size and text color
-        }
-        else{combinedStyle = fontSizeStyle + "";}
-
-        for (Node child : parent.getChildren()) {
-            if (child instanceof Text) {
-                ((Text) child).setStyle(combinedStyle);
-            } else if (child instanceof Label) {
-                ((Label) child).setStyle(combinedStyle);
-            } else if (child instanceof Button) {
-                // For Buttons, you might want to only change the text size and not the text color
-                // If you want to change both, use combinedStyle
-                ((Button) child).setStyle(combinedStyle);
-            } else if (child instanceof CheckBox) {
-                ((CheckBox) child).setStyle(combinedStyle);
-            } else if (child instanceof TextField) {
-                // For TextFields, you might want to only change the text size and not the text color
-                // If you want to change both, use combinedStyle
-                ((TextField) child).setStyle(combinedStyle);
-            } else if (child instanceof Pane) {
-                updateFontSizeRecursive((Pane) child, fontSizeStyle);
-            }
-        }
     }
 
     private void createVotingPage(int pageIndex) {
