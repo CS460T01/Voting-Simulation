@@ -12,7 +12,8 @@ import javafx.scene.text.Text;
 public class AccessibilityOptions {
     private String currentFontStyle;
     private boolean highContrast;
-
+    private final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
+    private final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
     String buttonHighContrastBackground = "-fx-background-color: #ffcc00; ";
     String buttonHighContrastText = "-fx-text-fill: #0099ff; ";
     String highContrastBackground = "-fx-background-color: #0099ff; ";
@@ -22,6 +23,38 @@ public class AccessibilityOptions {
         this.highContrast = highContrast;
 
     }
+
+    public boolean isHighContrastEnabled() {
+        return highContrast;
+    }
+
+    public void setHighContrast(boolean highContrast) {
+        this.highContrast = highContrast;
+    }
+
+    public String getFontStyle() {
+        return currentFontStyle;
+    }
+
+    public void setFontStyle(String fontStyle) {
+        if( fontStyle.equals("LARGE_FONT_STYLE"))
+        {
+            currentFontStyle = LARGE_FONT_STYLE;
+        }
+        else
+        {
+            currentFontStyle = NORMAL_FONT_STYLE;
+        }
+    }
+
+    public void updateHighContrastStyle(Parent parent) {
+        if (highContrast) {
+            applyHighContrastStyle(parent);
+        } else {
+            removeHighContrastStyle(parent);
+        }
+    }
+
 
     // Method to apply high contrast style
     public void applyHighContrastStyle(Parent parent) {

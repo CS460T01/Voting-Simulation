@@ -23,7 +23,7 @@ public class VoteFormGUI extends Application {
     VBox submitPromptBox;
     VBox accessibilityPromptBox;
     HBox buttonBox;
-    boolean HIGH_CONTRAST = false;
+    //boolean HIGH_CONTRAST = false;
     BorderPane root;
     private final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
     private final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
@@ -173,13 +173,13 @@ public class VoteFormGUI extends Application {
         highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
         highContrastCheckbox.setOnAction(e -> {
             if (highContrastCheckbox.isSelected()) {
-                HIGH_CONTRAST = true;
+                accessibilityOptions.setHighContrast(true);
                 confirmButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
                 updateButtonVisibility();
                 accessibilityOptions.applyHighContrastStyle(root);
 
             } else {
-                HIGH_CONTRAST = false;
+                accessibilityOptions.setHighContrast(false);
                 confirmButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
                 updateButtonVisibility();
                 contentBox.setStyle("");
@@ -457,7 +457,7 @@ public class VoteFormGUI extends Application {
         restoreSelections(office.getKey()); // Restore selections for this position
         applyCurrentFontStyleToUI(currentFontStyle,"");
 
-        if(HIGH_CONTRAST == true) {
+        if(accessibilityOptions.isHighContrastEnabled() == true) {
             nextButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
             prevButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
         }
