@@ -58,12 +58,7 @@ public class AccessibilityOptions {
         }
     }
 
-    // Method to update font size
-    public void updateFontSize(String fontSizeStyle, String color) {
-        this.currentFontStyle = fontSizeStyle;
-        // Implementation...
-    }
 
-    // Getters and setters for the properties
-    // ...
+
+
 }

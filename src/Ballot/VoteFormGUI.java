@@ -272,7 +272,6 @@ public class VoteFormGUI extends Application {
                     }
                 }
                 // If no checkboxes are selected, remove the position from the selections
-                //selections.remove(position);
                 controller.saveSelection(position, "null");
             }
         }
@@ -336,16 +335,6 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().setAll(submitPromptBox); // Replace all children with submitPromptBox
     }
 
-
-    private static class BallotResult {
-        Map<String, PositionResult> Ballot = new LinkedHashMap<>();
-    }
-
-    private static class PositionResult {
-        List<String> Candidates = new ArrayList<>();
-        String Voter_Choice;
-    }
-
     private void updateButtonVisibility() {
         int totalVotingPages = controller.getOffices().size();
 
@@ -387,14 +376,14 @@ public class VoteFormGUI extends Application {
                 highContrastCheckbox.setStyle(LARGE_FONT_STYLE);
                 textToSpeechCheckbox.setStyle(LARGE_FONT_STYLE);
                 confirmButton.setStyle(getButtonStyle(LARGE_FONT_STYLE));
-                updateFontSize(LARGE_FONT_STYLE, "");
+                applyCurrentFontStyleToUI(LARGE_FONT_STYLE, "");
             }
             else {
                 largerFontCheckbox.setStyle(NORMAL_FONT_STYLE);
                 highContrastCheckbox.setStyle(NORMAL_FONT_STYLE);
                 textToSpeechCheckbox.setStyle(NORMAL_FONT_STYLE);
                 confirmButton.setStyle(getButtonStyle(NORMAL_FONT_STYLE));
-                updateFontSize(NORMAL_FONT_STYLE, "");
+                applyCurrentFontStyleToUI(NORMAL_FONT_STYLE, "");
             }
 
 
@@ -449,18 +438,13 @@ public class VoteFormGUI extends Application {
 
     }
 
+//    private void updateFontSize(String fontSizeStyle, String color) {
+//        currentFontStyle = fontSizeStyle; // Update the current font style
+//        applyCurrentFontStyleToUI(color); // Apply the new font style to the UI
+//    }
 
-
-
-
-
-
-    private void updateFontSize(String fontSizeStyle, String color) {
-        currentFontStyle = fontSizeStyle; // Update the current font style
-        applyCurrentFontStyleToUI(color); // Apply the new font style to the UI
-    }
-
-    private void applyCurrentFontStyleToUI(String color) {
+    private void applyCurrentFontStyleToUI(String fontSizeStyle, String color) {
+        currentFontStyle = fontSizeStyle;
         // Update the style for buttons as an example
         prevButton.setStyle(currentFontStyle);
         nextButton.setStyle(currentFontStyle);
@@ -515,7 +499,7 @@ public class VoteFormGUI extends Application {
 
         contentBox.getChildren().addAll(headerDescriptionBox, optionsBox);
         restoreSelections(office.getKey()); // Restore selections for this position
-        applyCurrentFontStyleToUI("");
+        applyCurrentFontStyleToUI(currentFontStyle,"");
 
         if(HIGH_CONTRAST == true) {
             nextButton.setStyle(getButtonStyle(currentFontStyle));
