@@ -23,7 +23,6 @@ public class VoteFormGUI extends Application {
     VBox submitPromptBox;
     VBox accessibilityPromptBox;
     HBox buttonBox;
-    //boolean HIGH_CONTRAST = false;
     BorderPane root;
     private final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
     private final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
@@ -32,6 +31,8 @@ public class VoteFormGUI extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        System.setProperty("freetts.voices",
+                "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
         controller = new VotingController();
         controller.initializeOffices();
         accessibilityOptions = new AccessibilityOptions(NORMAL_FONT_STYLE, false);
@@ -188,6 +189,12 @@ public class VoteFormGUI extends Application {
         });
 
         textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
+
+        textToSpeechCheckbox.setOnAction(e -> {
+            if (textToSpeechCheckbox.isSelected()) {
+                accessibilityOptions.speakText("Text to speech enabled");
+            }
+        });
 
         confirmButton.setStyle(currentFontStyle); // Use the current font style
         confirmButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);

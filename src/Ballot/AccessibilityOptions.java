@@ -1,5 +1,7 @@
 package Ballot;
 
+import com.sun.speech.freetts.Voice;
+import com.sun.speech.freetts.VoiceManager;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -134,5 +136,21 @@ public class AccessibilityOptions {
 
         else{return currentFontStyle;}
     }
+    public void speakText(String text) {
+        VoiceManager vm = VoiceManager.getInstance();
+        Voice voice = vm.getVoice("kevin16");
+        if (voice != null) {
+            voice.allocate();
+            try {
+                voice.speak(text);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            voice.deallocate();
+        } else {
+            System.out.println("No voice named kevin16 found.");
+        }
+    }
+
 
 }
