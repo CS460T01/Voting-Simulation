@@ -283,14 +283,26 @@ public class VoteFormGUI extends Application {
         // Define the default styles
         String defaultTitleStyle = "-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;";
         String defaultLabelStyle = "-fx-font-size: 20px; -fx-font-weight: bold;";
+        String highlightLabelStyle = "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ffffff;";
         String defaultDescriptionStyle = "-fx-border-color: black; -fx-padding: 5px;";
 
         // Apply either the default style or the currentFontStyle based on the current selection
         String titleStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultTitleStyle;
-        String labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultLabelStyle;
+        String labelStyle;
+
+        if(accessibilityOptions.isHighContrastEnabled() == true){
+            labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : highlightLabelStyle;
+
+        }
+        else{
+            labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultLabelStyle;
+        }
 
         Label headerTitle = new Label("BERNALILLO COUNTY");
-        headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;");
+        if(accessibilityOptions.isHighContrastEnabled() == true){
+            headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px; -fx-text-fill: #ffffff;");
+        }
+        else {        headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;");}
         headerTitle.setAlignment(Pos.CENTER);
         headerTitle.setMaxWidth(Double.MAX_VALUE);
 
@@ -302,14 +314,23 @@ public class VoteFormGUI extends Application {
 
         // Use the default font size for these labels since they are part of the static header
         Label line1 = new Label("OFFICIAL BALLOT");
-        //line1.setStyle(defaultTitleStyle);
-        line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-padding: 10px;");
         Label line2 = new Label("OFFICIAL GENERAL ELECTION BALLOT");
-        line2.setStyle(defaultLabelStyle);
         Label line3 = new Label("OF THE STATE OF NEW MEXICO");
-        line3.setStyle(defaultLabelStyle);
         Label line4 = new Label("NOVEMBER 6, 2023");
-        line4.setStyle(defaultLabelStyle);
+
+        if(accessibilityOptions.isHighContrastEnabled() == true){
+            line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-padding: 10px;  -fx-text-fill: #ffffff;");
+            line2.setStyle(highlightLabelStyle);
+            line3.setStyle(highlightLabelStyle);
+            line4.setStyle(highlightLabelStyle);
+        }
+        else {
+            line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-padding: 10px;");
+            line2.setStyle(defaultLabelStyle);
+            line3.setStyle(defaultLabelStyle);
+            line4.setStyle(defaultLabelStyle);
+        }
+
         descriptionBox.getChildren().addAll(line1, line2, line3, line4);
 
         headerDescriptionBox.setSpacing(10);
@@ -407,14 +428,25 @@ public class VoteFormGUI extends Application {
             submitPromptBox.setMaxWidth(Double.MAX_VALUE);
 
             Label promptLabel = new Label("Submit Votes?");
-            promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+            if(accessibilityOptions.isHighContrastEnabled() == true){
+                promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
+
+            }
+            else{
+                promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+
+            }
 
             submitButton = new Button("Submit");
             submitButton.setStyle(currentFontStyle);
             submitButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             HBox.setHgrow(submitButton, Priority.ALWAYS);
-            submitButton.setOnAction(e -> controller.handleSubmit());
+            submitButton.setOnAction(e -> {
+                controller.handleSubmit();
+                submitButton.setDisable(true);
+                prevButton.setDisable(true);
 
+            });
             submitPromptBox.getChildren().addAll(promptLabel);
             buttonBox.getChildren().clear();
             buttonBox.getChildren().addAll(prevButton,submitButton);

@@ -16,9 +16,9 @@ public class AccessibilityOptions {
     private boolean highContrast;
     private final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
     private final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
-    String buttonHighContrastBackground = "-fx-background-color: #ffcc00; ";
-    String buttonHighContrastText = "-fx-text-fill: #0099ff; ";
-    String highContrastBackground = "-fx-background-color: #0099ff; ";
+    String buttonHighContrastBackground = "-fx-background-color: white; ";
+    String buttonHighContrastText = "-fx-text-fill: black; ";
+    String highContrastBackground = "-fx-background-color: black; ";
 
     public AccessibilityOptions(String currentFontStyle, boolean highContrast) {
         this.currentFontStyle = currentFontStyle;
@@ -34,8 +34,8 @@ public class AccessibilityOptions {
         this.highContrast = highContrast;
     }
 
-    public String getFontStyle() {
-        return currentFontStyle;
+    public String getCurrentFontStyle() {
+        return this.currentFontStyle;
     }
 
     public void setFontStyle(String fontStyle) {
@@ -100,7 +100,7 @@ public class AccessibilityOptions {
     }
 
     public void updateFontSizeRecursive(Pane parent, String fontSizeStyle) {
-        String highContrastColor = "-fx-text-fill: yellow;"; // Replace 'yellow' with your desired color
+        String highContrastColor = "-fx-text-fill: white;"; // Replace 'yellow' with your desired color
         String combinedStyle;
 
         if(this.highContrast == true) {
