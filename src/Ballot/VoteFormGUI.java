@@ -1,6 +1,8 @@
 package Ballot;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -10,6 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import java.util.*;
 
 public class VoteFormGUI extends Application {
@@ -28,6 +32,7 @@ public class VoteFormGUI extends Application {
     private final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
     private String currentFontStyle = NORMAL_FONT_STYLE;
     Map<String, VBox> optionElements = new HashMap<>();
+    boolean textToSpeech = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -134,6 +139,7 @@ public class VoteFormGUI extends Application {
     private void createAccessibilityOptionsPage(Stage primaryStage, Pane rootPane) {
         contentBox.getChildren().clear();
         buttonBox.getChildren().clear();
+
         Button confirmButton = new Button("Confirm");
 
         accessibilityPromptBox = new VBox(20);
@@ -192,8 +198,11 @@ public class VoteFormGUI extends Application {
 
         textToSpeechCheckbox.setOnAction(e -> {
             if (textToSpeechCheckbox.isSelected()) {
+                textToSpeech = true;
                 accessibilityOptions.speakText("Text to speech enabled");
             }
+
+            else{textToSpeech = false;}
         });
 
         confirmButton.setStyle(currentFontStyle); // Use the current font style
@@ -455,48 +464,55 @@ public class VoteFormGUI extends Application {
 
     private void createSubmitPrompt() {
         if (submitPromptBox == null) {
-
-
             submitPromptBox = new VBox(20);
             submitPromptBox.setAlignment(Pos.CENTER);
             submitPromptBox.setFillWidth(true);
             submitPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
             submitPromptBox.setMaxWidth(Double.MAX_VALUE);
 
-            Label promptLabel = new Label("Submit Votes?");
-            if(accessibilityOptions.isHighContrastEnabled() == true){
+            String promptMessage = "Submit Votes?";
+            Label promptLabel = new Label(promptMessage);
 
-                if(currentFontStyle == LARGE_FONT_STYLE){
+            if (accessibilityOptions.isHighContrastEnabled() == true) {
+                if (currentFontStyle == LARGE_FONT_STYLE) {
                     promptLabel.setStyle("-fx-font-size: 60px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
+                } else {
+                    promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
                 }
-                else{promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");}
-
-            }
-            else{
-
-                if(currentFontStyle == LARGE_FONT_STYLE){
+            } else {
+                if (currentFontStyle == LARGE_FONT_STYLE) {
                     promptLabel.setStyle("-fx-font-size: 60px; -fx-font-weight: bold;");
+                } else {
+                    promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
                 }
-                else{promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");}
-
             }
 
             submitButton = new Button("Submit");
             submitButton.setStyle(currentFontStyle);
             submitButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             HBox.setHgrow(submitButton, Priority.ALWAYS);
+
             submitButton.setOnAction(e -> {
                 controller.handleSubmit();
                 submitButton.setDisable(true);
                 prevButton.setDisable(true);
-
             });
+
             submitPromptBox.getChildren().addAll(promptLabel);
             buttonBox.getChildren().clear();
-            buttonBox.getChildren().addAll(prevButton,submitButton);
+            buttonBox.getChildren().addAll(prevButton, submitButton);
         }
 
         contentBox.getChildren().setAll(submitPromptBox); // Replace all children with submitPromptBox
+
+        // Use PauseTransition to introduce a delay before TTS
+        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(1)); // Adjust the duration as needed
+        pauseTransition.setOnFinished(event -> {
+            if (textToSpeech == true) {
+                accessibilityOptions.speakText("Would you like to Submit Votes?");
+            }
+        });
+        pauseTransition.play();
     }
 
     private void updateButtonVisibility() {
@@ -533,14 +549,34 @@ public class VoteFormGUI extends Application {
         Map.Entry<String, List<String>> office = offices.get(pageIndex); // Get the specific office entry
         contentBox.getChildren().clear();
 
+        StringBuilder description = new StringBuilder();
+        description.append("You are voting for the office of ").append(office.getKey()).append(".\n\n");
+
+        for (String candidate : office.getValue()) {
+            String[] candidateInfo = candidate.split("\\(");
+            if (candidateInfo.length > 1) {
+                // Candidate name without party information
+                String candidateName = candidateInfo[0].trim();
+                // Party information without parentheses
+                String party = candidateInfo[1].replaceAll("[()]", "").trim();
+                description.append(candidateName).append(" (").append(party).append(")\n");
+            } else {
+                // If there's no party information, display the candidate as-is
+                description.append(candidate).append("\n");
+            }
+        }
+
+        // Append "or write in candidate" to the description
+        description.append("\nOr write in candidate.");
+
         VBox headerDescriptionBox = createHeader(office.getKey(), "(Vote for One)");
         VBox optionsBox = createOptionsBox(office.getKey(), office.getValue());
 
         contentBox.getChildren().addAll(headerDescriptionBox, optionsBox);
         restoreSelections(office.getKey()); // Restore selections for this position
-        applyCurrentFontStyleToUI(currentFontStyle,"");
+        applyCurrentFontStyleToUI(currentFontStyle, "");
 
-        if(accessibilityOptions.isHighContrastEnabled() == true) {
+        if (accessibilityOptions.isHighContrastEnabled() == true) {
             nextButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
             prevButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
         }
@@ -548,6 +584,15 @@ public class VoteFormGUI extends Application {
         currentPage = pageIndex + 1; // Update current page index
         System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility(); // Update the visibility of navigation buttons
+
+        // Use PauseTransition to introduce a delay before TTS
+        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(0.2));
+        pauseTransition.setOnFinished(event -> {
+            if (textToSpeech == true) {
+                accessibilityOptions.speakText(description.toString());
+            }
+        });
+        pauseTransition.play();
     }
     public static void main(String[] args) {
         launch(args);

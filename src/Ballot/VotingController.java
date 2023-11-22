@@ -22,6 +22,9 @@ public class VotingController {
     // Method to initialize offices and candidates
     public void initializeOffices() {
         offices = new ArrayList<>();
+        offices.add(new AbstractMap.SimpleEntry<>("President", Arrays.asList(
+                "Joe Biden (Democrat)", "Donald Trump (Republican)"
+        )));
         offices.add(new AbstractMap.SimpleEntry<>("Governor", Arrays.asList(
                  "Michelle Lujan Grisham (Democrat)", "Susana Martinez (Republican)"
         )));
