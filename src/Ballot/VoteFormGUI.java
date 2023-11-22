@@ -291,7 +291,15 @@ public class VoteFormGUI extends Application {
         String labelStyle;
 
         if(accessibilityOptions.isHighContrastEnabled() == true){
-            labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : highlightLabelStyle;
+
+            if(currentFontStyle == LARGE_FONT_STYLE)
+            {
+                labelStyle = "-fx-font-size:40px; -fx-font-weight: bold; -fx-text-fill: #ffffff;";
+            }
+
+            else{            labelStyle = highlightLabelStyle;
+            }
+            //labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : highlightLabelStyle;
 
         }
         else{
@@ -429,11 +437,19 @@ public class VoteFormGUI extends Application {
 
             Label promptLabel = new Label("Submit Votes?");
             if(accessibilityOptions.isHighContrastEnabled() == true){
-                promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
+
+                if(currentFontStyle == LARGE_FONT_STYLE){
+                    promptLabel.setStyle("-fx-font-size: 60px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
+                }
+                else{promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");}
 
             }
             else{
-                promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+
+                if(currentFontStyle == LARGE_FONT_STYLE){
+                    promptLabel.setStyle("-fx-font-size: 60px; -fx-font-weight: bold;");
+                }
+                else{promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");}
 
             }
 
