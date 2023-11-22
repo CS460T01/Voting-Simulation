@@ -242,15 +242,42 @@ public class VoteFormGUI extends Application {
         writeInField.setVisible(false);
 
         for (String candidate : candidates) {
-            CheckBox checkBox = new CheckBox(candidate);
-            checkBox.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
-            checkBox.setMaxWidth(Double.MAX_VALUE);
-            checkBox.setOnAction(e -> {handleCheckBoxAction(checkBox, optionBox);
-                writeInField.setVisible(false);
-            });
-            optionBox.getChildren().add(checkBox);
-        }
+            String[] candidateInfo = candidate.split("\\(");
 
+            if (candidateInfo.length > 1) {
+                // Candidate name without party information
+                String candidateName = candidateInfo[0].trim();
+
+                CheckBox checkBox = new CheckBox(candidateName);
+                checkBox.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+                checkBox.setMaxWidth(Double.MAX_VALUE);
+
+                // Party information without parentheses
+                String party = candidateInfo[1].replaceAll("[()]", "").trim();
+
+                Label partyLabel = new Label(party);
+                partyLabel.setStyle("-fx-font-size: 16px;"); // Set the font size for the party label
+
+                optionBox.getChildren().addAll(checkBox, partyLabel);
+
+                checkBox.setOnAction(e -> {
+                    handleCheckBoxAction(checkBox, optionBox);
+                    writeInField.setVisible(false);
+                });
+            } else {
+                // If there's no party information, display the candidate as-is
+                CheckBox checkBox = new CheckBox(candidate);
+                checkBox.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+                checkBox.setMaxWidth(Double.MAX_VALUE);
+
+                optionBox.getChildren().add(checkBox);
+
+                checkBox.setOnAction(e -> {
+                    handleCheckBoxAction(checkBox, optionBox);
+                    writeInField.setVisible(false);
+                });
+            }
+        }
         // Add the write-in option
         CheckBox writeInOption = new CheckBox("Write-in");
         writeInOption.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
