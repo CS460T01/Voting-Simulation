@@ -18,6 +18,7 @@ public class VotingController {
         initializeOffices();
     }
 
+
     // Method to initialize offices and candidates
     public void initializeOffices() {
         offices = new ArrayList<>();

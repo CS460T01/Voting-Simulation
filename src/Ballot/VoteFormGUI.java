@@ -241,6 +241,7 @@ public class VoteFormGUI extends Application {
         writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         writeInField.setVisible(false);
 
+
         for (String candidate : candidates) {
             String[] candidateInfo = candidate.split("\\(");
 
