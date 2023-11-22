@@ -10,6 +10,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -184,6 +185,10 @@ public class VoteFormGUI extends Application {
                 confirmButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
                 updateButtonVisibility();
                 accessibilityOptions.applyHighContrastStyle(root);
+                accessibilityLabel.setTextFill(Color.WHITE);
+                largerFontCheckbox.setTextFill(Color.WHITE);
+                highContrastCheckbox.setTextFill(Color.WHITE);
+                textToSpeechCheckbox.setTextFill(Color.WHITE);
 
             } else {
                 accessibilityOptions.setHighContrast(false);
@@ -191,6 +196,11 @@ public class VoteFormGUI extends Application {
                 updateButtonVisibility();
                 contentBox.setStyle("");
                 accessibilityOptions.removeHighContrastStyle(root);
+                accessibilityLabel.setTextFill(Color.BLACK);
+                largerFontCheckbox.setTextFill(Color.BLACK);
+                highContrastCheckbox.setTextFill(Color.BLACK);
+                textToSpeechCheckbox.setTextFill(Color.BLACK);
+
             }
         });
 
@@ -506,7 +516,7 @@ public class VoteFormGUI extends Application {
         contentBox.getChildren().setAll(submitPromptBox); // Replace all children with submitPromptBox
 
         // Use PauseTransition to introduce a delay before TTS
-        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(1)); // Adjust the duration as needed
+        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(0.2)); // Adjust the duration as needed
         pauseTransition.setOnFinished(event -> {
             if (textToSpeech == true) {
                 accessibilityOptions.speakText("Would you like to Submit Votes?");
