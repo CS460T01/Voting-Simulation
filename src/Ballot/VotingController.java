@@ -18,15 +18,22 @@ public class VotingController {
         initializeOffices();
     }
 
+
     // Method to initialize offices and candidates
     public void initializeOffices() {
         offices = new ArrayList<>();
-        offices.add(new AbstractMap.SimpleEntry<>("Governor", Arrays.asList("1","Michelle Lujan Grisham", "Susana Martinez")));
-        offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList("2","Tim Keller", "Jehiel Luciana", "Džejlana Avedis")));
-        offices.add(new AbstractMap.SimpleEntry<>("Senator", Arrays.asList("3","Ben Ray Lujan", "Martin Heinrich")));
-        offices.add(new AbstractMap.SimpleEntry<>("Dog", Arrays.asList("4","Husky", "Golden retriever", "German Shepard")));
-        // Add more offices and candidates as needed
+        offices.add(new AbstractMap.SimpleEntry<>("President", Arrays.asList(
+                "Joe Biden (Democrat)", "Donald Trump (Republican)"
+        )));
+        offices.add(new AbstractMap.SimpleEntry<>("Governor", Arrays.asList(
+                 "Michelle Lujan Grisham (Democrat)", "Susana Martinez (Republican)"
+        )));
+        offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList(
+                 "Tim Keller (Democrat)", "Jehiel Luciana (Independent)", "Džejlana Avedis (Republican)"
+        )));
+        // Add more offices and candidates with party information as needed
     }
+
 
     public List<Map.Entry<String, List<String>>> getOffices() {
         return offices;

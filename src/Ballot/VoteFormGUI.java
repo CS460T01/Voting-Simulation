@@ -1,6 +1,8 @@
 package Ballot;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -8,11 +10,15 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import java.util.*;
 
 public class VoteFormGUI extends Application {
+    private AccessibilityOptions accessibilityOptions;
     private VotingController controller;
     VBox contentBox;
     int currentPage;
@@ -22,20 +28,20 @@ public class VoteFormGUI extends Application {
     VBox submitPromptBox;
     VBox accessibilityPromptBox;
     HBox buttonBox;
-    private String currentFontStyle = NORMAL_FONT_STYLE;
-    String buttonHighContrastBackground = "-fx-background-color: #ffcc00; ";
-    String buttonHighContrastText = "-fx-text-fill: #0099ff; ";
-    String highContrastBackground = "-fx-background-color: #0099ff; ";
-    boolean HIGH_CONTRAST = false;
     BorderPane root;
-    private static final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
-    private static final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
+    private final String LARGE_FONT_STYLE = "-fx-font-size: 40px;";
+    private final String NORMAL_FONT_STYLE = "-fx-font-size: 20px;";
+    private String currentFontStyle = NORMAL_FONT_STYLE;
     Map<String, VBox> optionElements = new HashMap<>();
+    boolean textToSpeech = false;
 
     @Override
     public void start(Stage primaryStage) {
+        System.setProperty("freetts.voices",
+                "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
         controller = new VotingController();
         controller.initializeOffices();
+        accessibilityOptions = new AccessibilityOptions(NORMAL_FONT_STYLE, false);
         root = new BorderPane(); // Initialize here
         contentBox = new VBox(5);
         contentBox.setPadding(new Insets(10));
@@ -64,9 +70,7 @@ public class VoteFormGUI extends Application {
         nextButton.setVisible(false);
         nextButton.setDisable(true);
 
-
         buttonBox.getChildren().addAll(prevButton, nextButton, submitButton);
-
 
         prevButton.setOnAction(e -> {
             System.out.println("Before Prev Action: " + currentPage);
@@ -102,7 +106,7 @@ public class VoteFormGUI extends Application {
                     currentPage++; // Manually increment because createSubmitPrompt doesn't increment currentPage
                     buttonBox.getChildren().clear();
                     buttonBox.getChildren().addAll(prevButton,submitButton);
-                    submitButton.setStyle(getButtonStyle(currentFontStyle));
+                    submitButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
                     //submitButton.setVisible(true);
                     //nextButton.setVisible(false);
                     updateButtonVisibility();
@@ -133,6 +137,113 @@ public class VoteFormGUI extends Application {
         //showVoterIdDialog(primaryStage);
     }
 
+    private void createAccessibilityOptionsPage(Stage primaryStage, Pane rootPane) {
+        contentBox.getChildren().clear();
+        buttonBox.getChildren().clear();
+
+        Button confirmButton = new Button("Confirm");
+
+        accessibilityPromptBox = new VBox(20);
+        accessibilityPromptBox.setAlignment(Pos.CENTER);
+        accessibilityPromptBox.setFillWidth(true);
+        accessibilityPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
+        accessibilityPromptBox.setMaxWidth(Double.MAX_VALUE);
+        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
+        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
+        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
+
+        Label accessibilityLabel = new Label("Select Accessibility Options:");
+        accessibilityLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;"); // Use the current font style
+
+        largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
+        largerFontCheckbox.setSelected(currentFontStyle.equals(LARGE_FONT_STYLE)); // Set selected based on current style
+        largerFontCheckbox.setOnAction(e -> {
+            //String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
+
+            if (largerFontCheckbox.isSelected()) {
+                largerFontCheckbox.setStyle(LARGE_FONT_STYLE);
+                highContrastCheckbox.setStyle(LARGE_FONT_STYLE);
+                textToSpeechCheckbox.setStyle(LARGE_FONT_STYLE);
+                confirmButton.setStyle(accessibilityOptions.getButtonStyle(LARGE_FONT_STYLE));
+                applyCurrentFontStyleToUI(LARGE_FONT_STYLE, "");
+            }
+            else {
+                largerFontCheckbox.setStyle(NORMAL_FONT_STYLE);
+                highContrastCheckbox.setStyle(NORMAL_FONT_STYLE);
+                textToSpeechCheckbox.setStyle(NORMAL_FONT_STYLE);
+                confirmButton.setStyle(accessibilityOptions.getButtonStyle(NORMAL_FONT_STYLE));
+                applyCurrentFontStyleToUI(NORMAL_FONT_STYLE, "");
+            }
+
+
+        });
+
+        highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
+        highContrastCheckbox.setOnAction(e -> {
+            if (highContrastCheckbox.isSelected()) {
+                accessibilityOptions.setHighContrast(true);
+                confirmButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
+                updateButtonVisibility();
+                accessibilityOptions.applyHighContrastStyle(root);
+                accessibilityLabel.setTextFill(Color.WHITE);
+                largerFontCheckbox.setTextFill(Color.WHITE);
+                highContrastCheckbox.setTextFill(Color.WHITE);
+                textToSpeechCheckbox.setTextFill(Color.WHITE);
+
+            } else {
+                accessibilityOptions.setHighContrast(false);
+                confirmButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
+                updateButtonVisibility();
+                contentBox.setStyle("");
+                accessibilityOptions.removeHighContrastStyle(root);
+                accessibilityLabel.setTextFill(Color.BLACK);
+                largerFontCheckbox.setTextFill(Color.BLACK);
+                highContrastCheckbox.setTextFill(Color.BLACK);
+                textToSpeechCheckbox.setTextFill(Color.BLACK);
+
+            }
+        });
+
+        textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
+
+        textToSpeechCheckbox.setOnAction(e -> {
+            if (textToSpeechCheckbox.isSelected()) {
+                textToSpeech = true;
+                accessibilityOptions.speakText("Text to speech enabled");
+            }
+
+            else{textToSpeech = false;}
+        });
+
+        confirmButton.setStyle(currentFontStyle); // Use the current font style
+        confirmButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        HBox.setHgrow(confirmButton, Priority.ALWAYS); // Make the button grow horizontally
+
+        confirmButton.setOnAction(e -> {
+            if (largerFontCheckbox.isSelected()) {
+                // Apply larger font settings across the UI
+            }
+
+            if (textToSpeechCheckbox.isSelected()) {
+                // Activate text to speech functionality
+            }
+
+            createVotingPage(0); // Navigate to the first voting page
+            //currentPage = 1;
+            updateButtonVisibility();
+            confirmButton.setVisible(false);
+            buttonBox.getChildren().clear();
+            buttonBox.getChildren().addAll(prevButton, nextButton); // Add back the navigation buttons
+            updateButtonVisibility(); // Make sure to update the visibility based on the current page
+
+            //createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
+        });
+
+        accessibilityPromptBox.getChildren().addAll(accessibilityLabel);
+        contentBox.getChildren().addAll(accessibilityPromptBox, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
+        buttonBox.getChildren().add(confirmButton);
+
+    }
 
     private void handleCheckBoxAction(CheckBox selectedCheckBox, VBox optionBox) {
         if (selectedCheckBox.isSelected()) {
@@ -149,16 +260,44 @@ public class VoteFormGUI extends Application {
         writeInField.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
         writeInField.setVisible(false);
 
-        for (String candidate : candidates) {
-            CheckBox checkBox = new CheckBox(candidate);
-            checkBox.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
-            checkBox.setMaxWidth(Double.MAX_VALUE);
-            checkBox.setOnAction(e -> {handleCheckBoxAction(checkBox, optionBox);
-                writeInField.setVisible(false);
-            });
-            optionBox.getChildren().add(checkBox);
-        }
 
+        for (String candidate : candidates) {
+            String[] candidateInfo = candidate.split("\\(");
+
+            if (candidateInfo.length > 1) {
+                // Candidate name without party information
+                String candidateName = candidateInfo[0].trim();
+
+                CheckBox checkBox = new CheckBox(candidateName);
+                checkBox.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+                checkBox.setMaxWidth(Double.MAX_VALUE);
+
+                // Party information without parentheses
+                String party = candidateInfo[1].replaceAll("[()]", "").trim();
+
+                Label partyLabel = new Label(party);
+                partyLabel.setStyle("-fx-font-size: 16px;"); // Set the font size for the party label
+
+                optionBox.getChildren().addAll(checkBox, partyLabel);
+
+                checkBox.setOnAction(e -> {
+                    handleCheckBoxAction(checkBox, optionBox);
+                    writeInField.setVisible(false);
+                });
+            } else {
+                // If there's no party information, display the candidate as-is
+                CheckBox checkBox = new CheckBox(candidate);
+                checkBox.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
+                checkBox.setMaxWidth(Double.MAX_VALUE);
+
+                optionBox.getChildren().add(checkBox);
+
+                checkBox.setOnAction(e -> {
+                    handleCheckBoxAction(checkBox, optionBox);
+                    writeInField.setVisible(false);
+                });
+            }
+        }
         // Add the write-in option
         CheckBox writeInOption = new CheckBox("Write-in");
         writeInOption.setStyle("-fx-font-size: 20px; -fx-border-color: black; -fx-padding: 10px;");
@@ -183,8 +322,6 @@ public class VoteFormGUI extends Application {
         return optionBox;
     }
 
-
-
     private VBox createHeader(String position, String instructions) {
         VBox headerDescriptionBox = new VBox(5);
         headerDescriptionBox.setAlignment(Pos.CENTER);
@@ -193,14 +330,34 @@ public class VoteFormGUI extends Application {
         // Define the default styles
         String defaultTitleStyle = "-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;";
         String defaultLabelStyle = "-fx-font-size: 20px; -fx-font-weight: bold;";
+        String highlightLabelStyle = "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ffffff;";
         String defaultDescriptionStyle = "-fx-border-color: black; -fx-padding: 5px;";
 
         // Apply either the default style or the currentFontStyle based on the current selection
         String titleStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultTitleStyle;
-        String labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultLabelStyle;
+        String labelStyle;
+
+        if(accessibilityOptions.isHighContrastEnabled() == true){
+
+            if(currentFontStyle == LARGE_FONT_STYLE)
+            {
+                labelStyle = "-fx-font-size:40px; -fx-font-weight: bold; -fx-text-fill: #ffffff;";
+            }
+
+            else{            labelStyle = highlightLabelStyle;
+            }
+            //labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : highlightLabelStyle;
+
+        }
+        else{
+            labelStyle = currentFontStyle.contains("40px") ? currentFontStyle : defaultLabelStyle;
+        }
 
         Label headerTitle = new Label("BERNALILLO COUNTY");
-        headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;");
+        if(accessibilityOptions.isHighContrastEnabled() == true){
+            headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px; -fx-text-fill: #ffffff;");
+        }
+        else {        headerTitle.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-border-color: black; -fx-padding: 10px;");}
         headerTitle.setAlignment(Pos.CENTER);
         headerTitle.setMaxWidth(Double.MAX_VALUE);
 
@@ -212,14 +369,23 @@ public class VoteFormGUI extends Application {
 
         // Use the default font size for these labels since they are part of the static header
         Label line1 = new Label("OFFICIAL BALLOT");
-        //line1.setStyle(defaultTitleStyle);
-        line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-padding: 10px;");
         Label line2 = new Label("OFFICIAL GENERAL ELECTION BALLOT");
-        line2.setStyle(defaultLabelStyle);
         Label line3 = new Label("OF THE STATE OF NEW MEXICO");
-        line3.setStyle(defaultLabelStyle);
         Label line4 = new Label("NOVEMBER 6, 2023");
-        line4.setStyle(defaultLabelStyle);
+
+        if(accessibilityOptions.isHighContrastEnabled() == true){
+            line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-padding: 10px;  -fx-text-fill: #ffffff;");
+            line2.setStyle(highlightLabelStyle);
+            line3.setStyle(highlightLabelStyle);
+            line4.setStyle(highlightLabelStyle);
+        }
+        else {
+            line1.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-padding: 10px;");
+            line2.setStyle(defaultLabelStyle);
+            line3.setStyle(defaultLabelStyle);
+            line4.setStyle(defaultLabelStyle);
+        }
+
         descriptionBox.getChildren().addAll(line1, line2, line3, line4);
 
         headerDescriptionBox.setSpacing(10);
@@ -270,7 +436,6 @@ public class VoteFormGUI extends Application {
                     }
                 }
                 // If no checkboxes are selected, remove the position from the selections
-                //selections.remove(position);
                 controller.saveSelection(position, "null");
             }
         }
@@ -309,39 +474,55 @@ public class VoteFormGUI extends Application {
 
     private void createSubmitPrompt() {
         if (submitPromptBox == null) {
-
-
             submitPromptBox = new VBox(20);
             submitPromptBox.setAlignment(Pos.CENTER);
             submitPromptBox.setFillWidth(true);
             submitPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
             submitPromptBox.setMaxWidth(Double.MAX_VALUE);
 
-            Label promptLabel = new Label("Submit Votes?");
-            promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+            String promptMessage = "Submit Votes?";
+            Label promptLabel = new Label(promptMessage);
+
+            if (accessibilityOptions.isHighContrastEnabled() == true) {
+                if (currentFontStyle == LARGE_FONT_STYLE) {
+                    promptLabel.setStyle("-fx-font-size: 60px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
+                } else {
+                    promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
+                }
+            } else {
+                if (currentFontStyle == LARGE_FONT_STYLE) {
+                    promptLabel.setStyle("-fx-font-size: 60px; -fx-font-weight: bold;");
+                } else {
+                    promptLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+                }
+            }
 
             submitButton = new Button("Submit");
             submitButton.setStyle(currentFontStyle);
             submitButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             HBox.setHgrow(submitButton, Priority.ALWAYS);
-            submitButton.setOnAction(e -> controller.handleSubmit());
+
+            submitButton.setOnAction(e -> {
+                controller.handleSubmit();
+                submitButton.setDisable(true);
+                prevButton.setDisable(true);
+            });
 
             submitPromptBox.getChildren().addAll(promptLabel);
             buttonBox.getChildren().clear();
-            buttonBox.getChildren().addAll(prevButton,submitButton);
+            buttonBox.getChildren().addAll(prevButton, submitButton);
         }
 
         contentBox.getChildren().setAll(submitPromptBox); // Replace all children with submitPromptBox
-    }
 
-
-    private static class BallotResult {
-        Map<String, PositionResult> Ballot = new LinkedHashMap<>();
-    }
-
-    private static class PositionResult {
-        List<String> Candidates = new ArrayList<>();
-        String Voter_Choice;
+        // Use PauseTransition to introduce a delay before TTS
+        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(0.2)); // Adjust the duration as needed
+        pauseTransition.setOnFinished(event -> {
+            if (textToSpeech == true) {
+                accessibilityOptions.speakText("Would you like to Submit Votes?");
+            }
+        });
+        pauseTransition.play();
     }
 
     private void updateButtonVisibility() {
@@ -357,182 +538,16 @@ public class VoteFormGUI extends Application {
         submitButton.setVisible(currentPage == totalVotingPages + 1);
     }
 
-
-    private void createAccessibilityOptionsPage(Stage primaryStage, Pane rootPane) {
-        contentBox.getChildren().clear();
-        buttonBox.getChildren().clear();
-        Button confirmButton = new Button("Confirm");
-
-        accessibilityPromptBox = new VBox(20);
-        accessibilityPromptBox.setAlignment(Pos.CENTER);
-        accessibilityPromptBox.setFillWidth(true);
-        accessibilityPromptBox.setStyle("-fx-border-color: black; -fx-padding: 10px;");
-        accessibilityPromptBox.setMaxWidth(Double.MAX_VALUE);
-        CheckBox largerFontCheckbox = new CheckBox("Use Larger Font");
-        CheckBox highContrastCheckbox = new CheckBox("Use High Contrast");
-        CheckBox textToSpeechCheckbox = new CheckBox("Enable Text to Speech");
-
-        Label accessibilityLabel = new Label("Select Accessibility Options:");
-        accessibilityLabel.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;"); // Use the current font style
-
-        largerFontCheckbox.setStyle(currentFontStyle); // Use the current font style
-        largerFontCheckbox.setSelected(currentFontStyle.equals(LARGE_FONT_STYLE)); // Set selected based on current style
-        largerFontCheckbox.setOnAction(e -> {
-            //String newStyle = largerFontCheckbox.isSelected() ? LARGE_FONT_STYLE : NORMAL_FONT_STYLE;
-
-            if (largerFontCheckbox.isSelected()) {
-                largerFontCheckbox.setStyle(LARGE_FONT_STYLE);
-                highContrastCheckbox.setStyle(LARGE_FONT_STYLE);
-                textToSpeechCheckbox.setStyle(LARGE_FONT_STYLE);
-                confirmButton.setStyle(getButtonStyle(LARGE_FONT_STYLE));
-                updateFontSize(LARGE_FONT_STYLE, "");
-            }
-            else {
-                largerFontCheckbox.setStyle(NORMAL_FONT_STYLE);
-                highContrastCheckbox.setStyle(NORMAL_FONT_STYLE);
-                textToSpeechCheckbox.setStyle(NORMAL_FONT_STYLE);
-                confirmButton.setStyle(getButtonStyle(NORMAL_FONT_STYLE));
-                updateFontSize(NORMAL_FONT_STYLE, "");
-            }
-
-
-        });
-
-        highContrastCheckbox.setStyle(currentFontStyle); // Use the current font style
-        highContrastCheckbox.setOnAction(e -> {
-            if (highContrastCheckbox.isSelected()) {
-                HIGH_CONTRAST = true;
-                confirmButton.setStyle(getButtonStyle(currentFontStyle));
-                updateButtonVisibility();
-                applyHighContrastStyle(root);
-
-            } else {
-                HIGH_CONTRAST = false;
-                confirmButton.setStyle(getButtonStyle(currentFontStyle));
-                updateButtonVisibility();
-                contentBox.setStyle("");
-                removeHighContrastStyle(root);
-            }
-        });
-
-        textToSpeechCheckbox.setStyle(currentFontStyle); // Use the current font style
-
-        confirmButton.setStyle(currentFontStyle); // Use the current font style
-        confirmButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        HBox.setHgrow(confirmButton, Priority.ALWAYS); // Make the button grow horizontally
-
-        confirmButton.setOnAction(e -> {
-            if (largerFontCheckbox.isSelected()) {
-                // Apply larger font settings across the UI
-            }
-
-            if (textToSpeechCheckbox.isSelected()) {
-                // Activate text to speech functionality
-            }
-
-            createVotingPage(0); // Navigate to the first voting page
-            //currentPage = 1;
-            updateButtonVisibility();
-            confirmButton.setVisible(false);
-            buttonBox.getChildren().clear();
-            buttonBox.getChildren().addAll(prevButton, nextButton); // Add back the navigation buttons
-            updateButtonVisibility(); // Make sure to update the visibility based on the current page
-
-            //createVoterIdPage(primaryStage); // Proceed to the voter ID page after confirming options
-        });
-
-        accessibilityPromptBox.getChildren().addAll(accessibilityLabel);
-        contentBox.getChildren().addAll(accessibilityPromptBox, largerFontCheckbox, highContrastCheckbox, textToSpeechCheckbox, confirmButton);
-        buttonBox.getChildren().add(confirmButton);
-
-    }
-
-    private void applyHighContrastStyle(Parent parent) {
-        HIGH_CONTRAST = true;
-
-        // Check if the parent is one of the container types
-        if (parent instanceof Pane || parent instanceof VBox || parent instanceof HBox || parent instanceof BorderPane || parent instanceof StackPane) {
-            // Apply high contrast style selectively
-            String existingStyle = parent.getStyle();
-            if (!(parent instanceof TextField) && !(parent instanceof CheckBox)) {
-                // Preserve existing styles (like borders) and append only the background color
-                parent.setStyle(existingStyle + highContrastBackground);
-            }
-        }
-
-        // Recursively apply the style, skipping text fields and checkboxes
-        for (Node child : parent.getChildrenUnmodifiable()) {
-            if (child instanceof Parent && !(child instanceof TextField) && !(child instanceof CheckBox)) {
-                applyHighContrastStyle((Parent) child);
-            }
-        }
-    }
-
-
-    private void removeHighContrastStyle(Parent parent) {
-        HIGH_CONTRAST = false;
-
-        // Reset only the high contrast specific styles
-        if (parent instanceof Pane || parent instanceof VBox || parent instanceof HBox || parent instanceof BorderPane || parent instanceof StackPane) {
-            String existingStyle = parent.getStyle();
-            // Remove only the high contrast background color, preserving other styles
-            existingStyle = existingStyle.replace(highContrastBackground, "");
-            parent.setStyle(existingStyle);
-        }
-
-        // Recursively reset the style for child nodes that are containers
-        for (Node child : parent.getChildrenUnmodifiable()) {
-            if (child instanceof Parent) {
-                removeHighContrastStyle((Parent) child);
-            }
-        }
-    }
-
-
-    private void updateFontSize(String fontSizeStyle, String color) {
-        currentFontStyle = fontSizeStyle; // Update the current font style
-        applyCurrentFontStyleToUI(color); // Apply the new font style to the UI
-    }
-
-    private void applyCurrentFontStyleToUI(String color) {
+    private void applyCurrentFontStyleToUI(String fontSizeStyle, String color) {
+        currentFontStyle = fontSizeStyle;
         // Update the style for buttons as an example
         prevButton.setStyle(currentFontStyle);
         nextButton.setStyle(currentFontStyle);
         submitButton.setStyle(currentFontStyle);
 
         // Apply the current font style to the options and headers
-        optionElements.values().forEach(optionBox -> updateFontSizeRecursive(optionBox, currentFontStyle));
+        optionElements.values().forEach(optionBox -> accessibilityOptions.updateFontSizeRecursive(optionBox, currentFontStyle));
         // You might need additional lines here to update other parts of the UI
-    }
-
-    private void updateFontSizeRecursive(Pane parent, String fontSizeStyle) {
-        String highContrastColor = "-fx-text-fill: yellow;"; // Replace 'yellow' with your desired color
-        String combinedStyle;
-
-        if(HIGH_CONTRAST == true) {
-            combinedStyle = fontSizeStyle + highContrastColor; // Combine font size and text color
-        }
-        else{combinedStyle = fontSizeStyle + "";}
-
-        for (Node child : parent.getChildren()) {
-            if (child instanceof Text) {
-                ((Text) child).setStyle(combinedStyle);
-            } else if (child instanceof Label) {
-                ((Label) child).setStyle(combinedStyle);
-            } else if (child instanceof Button) {
-                // For Buttons, you might want to only change the text size and not the text color
-                // If you want to change both, use combinedStyle
-                ((Button) child).setStyle(combinedStyle);
-            } else if (child instanceof CheckBox) {
-                ((CheckBox) child).setStyle(combinedStyle);
-            } else if (child instanceof TextField) {
-                // For TextFields, you might want to only change the text size and not the text color
-                // If you want to change both, use combinedStyle
-                ((TextField) child).setStyle(combinedStyle);
-            } else if (child instanceof Pane) {
-                updateFontSizeRecursive((Pane) child, fontSizeStyle);
-            }
-        }
     }
 
     private void createVotingPage(int pageIndex) {
@@ -544,32 +559,51 @@ public class VoteFormGUI extends Application {
         Map.Entry<String, List<String>> office = offices.get(pageIndex); // Get the specific office entry
         contentBox.getChildren().clear();
 
+        StringBuilder description = new StringBuilder();
+        description.append("You are voting for the office of ").append(office.getKey()).append(".\n\n");
+
+        for (String candidate : office.getValue()) {
+            String[] candidateInfo = candidate.split("\\(");
+            if (candidateInfo.length > 1) {
+                // Candidate name without party information
+                String candidateName = candidateInfo[0].trim();
+                // Party information without parentheses
+                String party = candidateInfo[1].replaceAll("[()]", "").trim();
+                description.append(candidateName).append(" (").append(party).append(")\n");
+            } else {
+                // If there's no party information, display the candidate as-is
+                description.append(candidate).append("\n");
+            }
+        }
+
+        // Append "or write in candidate" to the description
+        description.append("\nOr write in candidate.");
+
         VBox headerDescriptionBox = createHeader(office.getKey(), "(Vote for One)");
         VBox optionsBox = createOptionsBox(office.getKey(), office.getValue());
 
         contentBox.getChildren().addAll(headerDescriptionBox, optionsBox);
         restoreSelections(office.getKey()); // Restore selections for this position
-        applyCurrentFontStyleToUI("");
+        applyCurrentFontStyleToUI(currentFontStyle, "");
 
-        if(HIGH_CONTRAST == true) {
-            nextButton.setStyle(getButtonStyle(currentFontStyle));
-            prevButton.setStyle(getButtonStyle(currentFontStyle));
+        if (accessibilityOptions.isHighContrastEnabled() == true) {
+            nextButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
+            prevButton.setStyle(accessibilityOptions.getButtonStyle(currentFontStyle));
         }
 
         currentPage = pageIndex + 1; // Update current page index
         System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility(); // Update the visibility of navigation buttons
+
+        // Use PauseTransition to introduce a delay before TTS
+        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(0.2));
+        pauseTransition.setOnFinished(event -> {
+            if (textToSpeech == true) {
+                accessibilityOptions.speakText(description.toString());
+            }
+        });
+        pauseTransition.play();
     }
-
-
-    private String getButtonStyle(String currentFontStyle) {
-        if(HIGH_CONTRAST == true) {
-            return buttonHighContrastBackground + buttonHighContrastText + currentFontStyle;
-        }
-
-        else{return currentFontStyle;}
-    }
-
     public static void main(String[] args) {
         launch(args);
     }
