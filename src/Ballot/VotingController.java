@@ -31,7 +31,6 @@ public class VotingController {
         offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList(
                  "Tim Keller (Democrat)", "Jehiel Luciana (Independent)", "Džejlana Avedis (Republican)"
         )));
-        // Add more offices and candidates with party information as needed
     }
 
 
@@ -73,9 +72,13 @@ public class VotingController {
             System.out.println(position + ": " + positionResult.getVoterChoice());
         }
 
-        // Convert the results object to a JSON string
+        // Wrap the results in a new map with "positions" key
+        Map<String, Object> wrappedResults = new HashMap<>();
+        wrappedResults.put("positions", ballotResult.getResults());
+
+        // Convert the wrapped results object to a JSON string
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(ballotResult.getResults());
+        String json = gson.toJson(wrappedResults);
 
         // Save the JSON string to a file
         try (FileWriter file = new FileWriter("votingResults.json")) {

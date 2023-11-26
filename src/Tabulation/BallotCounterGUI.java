@@ -1,5 +1,6 @@
 package Tabulation;
 
+import Ballot.BallotResult;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -10,13 +11,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 public class BallotCounterGUI extends Application {
+    private Stage primaryStage;
+    private BallotCounterController controller;
     private Label voteLabel;
     private Label timeLabel;
     private Label dateLabel;
@@ -27,6 +34,8 @@ public class BallotCounterGUI extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+        this.controller = new BallotCounterController();
         BorderPane root = new BorderPane();
         root.setTop(createHeader());
         root.setCenter(createVoteCounter());
@@ -41,6 +50,20 @@ public class BallotCounterGUI extends Application {
 
         startClock();
     }
+
+    private void processBallot() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+        File ballotFile = fileChooser.showOpenDialog(primaryStage);
+
+        if (ballotFile != null) {
+            controller.processBallotFile(ballotFile);
+        }
+
+        voteLabel.setText(String.format("%05d", controller.getTotalBallotsProcessed()));
+    }
+
+
 
     private VBox createHeader() {
         VBox headerBox = new VBox(5);
@@ -85,13 +108,12 @@ public class BallotCounterGUI extends Application {
         Line divider = new Line(0, 0, 200, 0);
         divider.setStyle("-fx-stroke: white; -fx-stroke-width: 2;");
 
-        int voteCount = 7;
-        voteLabel = new Label(String.format("%05d", voteCount));
+        voteLabel = new Label(String.format("%05d", 0));
         voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 38px; -fx-font-weight: bold; -fx-font-family: monospace;");
 
         Button submitBallotButton = new Button("Submit Ballot");
         submitBallotButton.setOnAction(e -> {
-            //TODO: ADD FUNCTIONALITY TO SUBMIT BALLOT
+            processBallot();
         });
 
         bottomContent.getChildren().addAll(titleLabel, divider, voteLabel, submitBallotButton);

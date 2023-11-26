@@ -27,12 +27,12 @@ public class CheckInGUI extends Application {
     private TextField dobTextField;
     private Text actionTarget;
 
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/DD/YYYY");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
     @Override
     public void start(Stage primaryStage) {
         register = new Register();
-        primaryStage.setTitle("Registration.Voter Check-In");
+        primaryStage.setTitle("Voter Check-In");
         primaryStage.setResizable(false);
 
         GridPane grid = createGridPane();
@@ -59,7 +59,7 @@ public class CheckInGUI extends Application {
     }
 
     private void addUIControls(GridPane grid) {
-        Text header = new Text("Registration.Voter Check-In");
+        Text header = new Text("Voter Check-In");
         header.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         header.setFill(Color.DARKBLUE);
         GridPane.setColumnSpan(header, 2);
