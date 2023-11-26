@@ -161,9 +161,24 @@ public class BallotCounterGUI extends Application {
     private VBox createRightSection() {
         VBox rightSection = new VBox();
         rightSection.setAlignment(Pos.CENTER_RIGHT);
-        Label firmwareLabel = new Label("Firmware: 1.0");
+        Label firmwareLabel = new Label("Firmware: 1.2.7");
         firmwareLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
         rightSection.getChildren().add(firmwareLabel);
+        Button loginButton = new Button("Admin Login");
+        loginButton.setOnAction(e -> {
+            System.out.println("Login button pressed");
+            // Switch to login screen
+
+        });
+
+        loginButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white; ");
+        loginButton.setOnMouseEntered(e -> {
+            loginButton.setStyle("-fx-background-color: #161825; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white;");
+        });
+        loginButton.setOnMouseExited(e -> {
+            loginButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white;");
+        });
+        rightSection.getChildren().add(loginButton);
 
         return rightSection;
     }
