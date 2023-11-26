@@ -90,6 +90,38 @@ public class VotingController {
         }
     }
 
+    public void createEmptyBallot() {
+        BallotResult ballotResult = new BallotResult();
+
+        for (Map.Entry<String, List<String>> officeEntry : offices) {
+            String position = officeEntry.getKey();
+            List<String> candidatesList = officeEntry.getValue();
+
+            PositionResult positionResult = new PositionResult();
+            positionResult.setCandidates(candidatesList);
+            positionResult.setVoterChoice("");
+
+            ballotResult.addResult(position, positionResult);
+        }
+
+        // Wrap the results in a new map with "positions" key
+        Map<String, Object> wrappedResults = new HashMap<>();
+        wrappedResults.put("positions", ballotResult.getResults());
+
+        // Convert the wrapped results object to a JSON string
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(wrappedResults);
+
+        // Save the JSON string to a file
+        try (FileWriter file = new FileWriter("emptyBallot.json")) {
+            file.write(json);
+            System.out.println("Empty ballot saved to emptyBallot.json");
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving the empty ballot to a file.");
+            e.printStackTrace();
+        }
+    }
+
 
     public void saveSelection(String position, String s) {
 
