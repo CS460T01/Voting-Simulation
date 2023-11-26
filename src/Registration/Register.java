@@ -34,10 +34,10 @@ public class Register implements Serializable {
     public boolean checkInVoter(String firstName, String lastName, String ssnLast4, String address, LocalDate dob) {
         Voter voter = findVoter(firstName, lastName, ssnLast4, address, dob);
         if (voter == null) {
-            System.out.println("Registration.Voter not found.");
+            System.out.println("Voter not found.");
             return false;
         } else if (voter.hasVoted()) {
-            System.out.println("Registration.Voter has already voted.");
+            System.out.println("Voter has already voted.");
             return false;
         } else {
             voter.markAsVoted();
