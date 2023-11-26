@@ -1,5 +1,6 @@
 package Registration;
 
+import Ballot.VoteFormGUI;
 import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -25,6 +26,7 @@ public class CheckInGUI extends Application {
     private TextField addressTextField;
     private TextField ssnTextField;
     private TextField dobTextField;
+    private CheckBox adaBallotCheckBox;
     private Text actionTarget;
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
@@ -92,6 +94,9 @@ public class CheckInGUI extends Application {
         dobTextField.setPromptText("MM/DD/YYYY");
         grid.add(dobTextField, 1, 5);
 
+        adaBallotCheckBox = new CheckBox("ADA Ballot");
+        grid.add(adaBallotCheckBox, 0, 6);
+
         actionTarget = new Text();
         GridPane.setColumnSpan(actionTarget, 2);
         GridPane.setHalignment(actionTarget, HPos.CENTER);
@@ -117,9 +122,24 @@ public class CheckInGUI extends Application {
 
         if (areFieldsValid(firstName, lastName, address, ssnLast4, dobString)) {
             LocalDate dob = parseDateOfBirth(dobString);
-            if (dob != null) {
+            if (dob != null && adaBallotCheckBox.isSelected()) {
+                openVoteFormGUI();
+            } else if (dob != null) {
                 processCheckIn(firstName, lastName, address, ssnLast4, dob);
             }
+        }
+    }
+
+
+
+    private void openVoteFormGUI() {
+        try {
+            VoteFormGUI voteFormGUI = new VoteFormGUI();
+            Stage voteStage = new Stage();
+            voteFormGUI.start(voteStage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            actionTarget.setText("Error opening ADA Ballot.");
         }
     }
 
