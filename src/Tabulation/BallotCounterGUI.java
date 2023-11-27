@@ -1,6 +1,5 @@
 package Tabulation;
 
-import Ballot.BallotResult;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -13,12 +12,10 @@ import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
+
 
 public class BallotCounterGUI extends Application {
     private Stage primaryStage;
@@ -234,10 +231,8 @@ public class BallotCounterGUI extends Application {
             String username = usernameField.getText();
             String password = passwordField.getText();
             if ("admin".equals(username) && "password".equals(password)) {
-                // Credentials are correct, switch to admin control scene
                 primaryStage.setScene(createAdminControlScene());
             } else {
-                // Credentials are incorrect, show an error message
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Incorrect username or password.");
                 alert.setHeaderText(null);
                 alert.showAndWait();
@@ -302,21 +297,18 @@ public class BallotCounterGUI extends Application {
         adminPage.setPadding(new Insets(20));
         adminPage.setStyle("-fx-background-color: #25283e;");
 
-        // Export Audit Trail Button
         Button exportAuditTrailButton = new Button("Export Audit Trail");
         styleButton(exportAuditTrailButton);
         exportAuditTrailButton.setOnAction(e -> {
             // TODO: Implement export audit trail functionality
         });
 
-        // Export Election Results Button
         Button exportElectionResultsButton = new Button("Export Election Results");
         styleButton(exportElectionResultsButton);
         exportElectionResultsButton.setOnAction(e -> {
             // TODO: Implement export election results functionality
         });
 
-        // Toggle Switch for Tabulation
         SwitchButton toggleTabulationSwitch = new SwitchButton();
         Label toggleLabel = new Label("Tabulation:");
         toggleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
