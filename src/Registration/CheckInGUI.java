@@ -1,6 +1,7 @@
 package Registration;
 
 import Ballot.VoteFormGUI;
+import Ballot.VotingController;
 import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -145,10 +146,11 @@ public class CheckInGUI extends Application {
                 }).start();
             } else if (processSuccessful) {
                 System.out.println("Printing ballot...");
+                VotingController votingController = new VotingController();
+                votingController.createEmptyBallot();
             }
         }
     }
-
 
     private void openVoteFormGUI() {
         try {
