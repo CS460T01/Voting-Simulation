@@ -112,6 +112,14 @@ public class BallotCounterGUI extends Application {
         voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 38px; -fx-font-weight: bold; -fx-font-family: monospace;");
 
         Button submitBallotButton = new Button("Submit Ballot");
+
+        submitBallotButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 18px; -fx-border-color: white; ");
+        submitBallotButton.setOnMouseEntered(e -> {
+            submitBallotButton.setStyle("-fx-background-color: #161825; -fx-text-fill: white; -fx-font-size: 18px; -fx-border-color: white;");
+        });
+        submitBallotButton.setOnMouseExited(e -> {
+            submitBallotButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 18px; -fx-border-color: white;");
+        });
         submitBallotButton.setOnAction(e -> {
             processBallot();
         });
@@ -158,6 +166,7 @@ public class BallotCounterGUI extends Application {
         return centerSection;
     }
 
+
     private VBox createRightSection() {
         VBox rightSection = new VBox();
         rightSection.setAlignment(Pos.CENTER_RIGHT);
@@ -166,11 +175,8 @@ public class BallotCounterGUI extends Application {
         rightSection.getChildren().add(firmwareLabel);
         Button loginButton = new Button("Admin Login");
         loginButton.setOnAction(e -> {
-            System.out.println("Login button pressed");
-            // Switch to login screen
-
+            // go to login screen
         });
-
         loginButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white; ");
         loginButton.setOnMouseEntered(e -> {
             loginButton.setStyle("-fx-background-color: #161825; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white;");
