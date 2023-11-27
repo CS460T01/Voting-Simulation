@@ -32,6 +32,8 @@ public class BallotCounterGUI extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.controller = new BallotCounterController();
+
+        controller.loadState();
         BorderPane root = new BorderPane();
         root.setTop(createHeader());
         root.setCenter(createVoteCounter());
@@ -54,6 +56,7 @@ public class BallotCounterGUI extends Application {
 
         if (ballotFile != null) {
             controller.processBallotFile(ballotFile);
+            controller.saveState();
         }
 
         voteLabel.setText(String.format("%05d", controller.getTotalBallotsProcessed()));
@@ -104,7 +107,7 @@ public class BallotCounterGUI extends Application {
         Line divider = new Line(0, 0, 200, 0);
         divider.setStyle("-fx-stroke: white; -fx-stroke-width: 2;");
 
-        voteLabel = new Label(String.format("%05d", 0));
+        voteLabel = new Label(String.format("%05d", controller.getTotalBallotsProcessed()));
         voteLabel.setStyle("-fx-text-fill: white; -fx-font-size: 38px; -fx-font-weight: bold; -fx-font-family: monospace;");
 
         Button submitBallotButton = new Button("Submit Ballot");
@@ -315,7 +318,7 @@ public class BallotCounterGUI extends Application {
         HBox toggleBox = new HBox(10, toggleLabel, toggleTabulationSwitch);
         toggleBox.setAlignment(Pos.CENTER);
 
-        Button backButton = new Button("Back");
+        Button backButton = new Button("LOG OUT");
         styleButton(backButton);
         backButton.setMinWidth(200);
         backButton.setOnAction(e -> {

@@ -1,16 +1,23 @@
 package Tabulation;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
 public class BallotCounterController {
+    private static final String DATA_FILE_PATH = "data/Tabulator/vote_data.json"; // The path to the file where data will be saved
 
     private Map<String, Map<String, Integer>> voteCounts = new HashMap<>();
     private int totalBallotsProcessed = 0;
+
+    public BallotCounterController() {
+    }
 
     public void processBallotFile(File ballotFile) {
         Gson gson = new Gson();
@@ -18,6 +25,7 @@ public class BallotCounterController {
         try (FileReader reader = new FileReader(filePath)) {
             Ballot ballot = gson.fromJson(reader, Ballot.class);
             updateVoteCounts(ballot);
+            saveState(); // Save state after processing a new ballot
             printCurrentVoteCounts();
         } catch (IOException e) {
             e.printStackTrace();
@@ -32,6 +40,33 @@ public class BallotCounterController {
                 voteCounts.get(position).merge(chosenCandidate, 1, Integer::sum);
             });
             totalBallotsProcessed++;
+        }
+    }
+
+    public void saveState() {
+        Gson gson = new Gson();
+        try (FileWriter writer = new FileWriter(DATA_FILE_PATH)) {
+            gson.toJson(this, writer); // Serialize the entire object
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadState() {
+        Gson gson = new Gson();
+        File dataFile = new File(DATA_FILE_PATH);
+        if (dataFile.exists()) {
+            try (FileReader reader = new FileReader(dataFile)) {
+                // Deserialize the object. We need to create a TypeToken due to the generic nature of the map.
+                Type controllerType = new TypeToken<BallotCounterController>(){}.getType();
+                BallotCounterController loadedData = gson.fromJson(reader, controllerType);
+                if (loadedData != null) {
+                    this.voteCounts = loadedData.voteCounts;
+                    this.totalBallotsProcessed = loadedData.totalBallotsProcessed;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
