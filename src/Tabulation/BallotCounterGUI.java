@@ -292,37 +292,38 @@ public class BallotCounterGUI extends Application {
     }
 
     private VBox createAdminPage() {
-        VBox adminPage = new VBox(15);
+        VBox adminPage = new VBox(20);
         adminPage.setAlignment(Pos.CENTER);
-        adminPage.setPadding(new Insets(20));
-        adminPage.setStyle("-fx-background-color: #25283e;");
+        adminPage.setPadding(new Insets(50));
+        adminPage.setStyle("-fx-background-color: #25283e; -fx-border-color: white; -fx-border-width: 3; -fx-border-style: solid;");
+
+        Label headerLabel = new Label("Administrator Controls");
+        headerLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
+        headerLabel.setAlignment(Pos.CENTER);
+        headerLabel.setPadding(new Insets(0, 0, 20, 0));
 
         Button exportAuditTrailButton = new Button("Export Audit Trail");
         styleButton(exportAuditTrailButton);
-        exportAuditTrailButton.setOnAction(e -> {
-            // TODO: Implement export audit trail functionality
-        });
-
+        exportAuditTrailButton.setMinWidth(200);
         Button exportElectionResultsButton = new Button("Export Election Results");
         styleButton(exportElectionResultsButton);
-        exportElectionResultsButton.setOnAction(e -> {
-            // TODO: Implement export election results functionality
-        });
+        exportElectionResultsButton.setMinWidth(200);
 
         SwitchButton toggleTabulationSwitch = new SwitchButton();
         Label toggleLabel = new Label("Tabulation:");
         toggleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
         HBox toggleBox = new HBox(10, toggleLabel, toggleTabulationSwitch);
         toggleBox.setAlignment(Pos.CENTER);
-        toggleBox.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
 
         Button backButton = new Button("Back");
         styleButton(backButton);
+        backButton.setMinWidth(200);
         backButton.setOnAction(e -> {
             primaryStage.setScene(createMainScene());
         });
 
         adminPage.getChildren().addAll(
+                headerLabel,
                 exportAuditTrailButton,
                 exportElectionResultsButton,
                 toggleBox,
