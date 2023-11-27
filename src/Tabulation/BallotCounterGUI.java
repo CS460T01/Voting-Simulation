@@ -7,10 +7,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
@@ -156,6 +153,30 @@ public class BallotCounterGUI extends Application {
         return footerBox;
     }
 
+    private VBox createRightSection() {
+        VBox rightSection = new VBox();
+        rightSection.setAlignment(Pos.CENTER_RIGHT);
+        Label firmwareLabel = new Label("Firmware: 1.2.7");
+        firmwareLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        rightSection.getChildren().add(firmwareLabel);
+        Button loginButton = new Button("Admin Login");
+        loginButton.setOnAction(e -> {
+            Scene loginScene = createLoginScene();
+            primaryStage.setScene(loginScene);
+        });
+
+        loginButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white; ");
+        loginButton.setOnMouseEntered(e -> {
+            loginButton.setStyle("-fx-background-color: #161825; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white;");
+        });
+        loginButton.setOnMouseExited(e -> {
+            loginButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white;");
+        });
+        rightSection.getChildren().add(loginButton);
+
+        return rightSection;
+    }
+
     private VBox createCenterSection() {
         VBox centerSection = new VBox(2);
         Label locationLabel = new Label("Location: POLLING LOCATION 1");
@@ -210,8 +231,19 @@ public class BallotCounterGUI extends Application {
         styleButton(loginButton);
         loginButton.setMinWidth(100);
         loginButton.setOnAction(e -> {
-            // Handle login
+            String username = usernameField.getText();
+            String password = passwordField.getText();
+            if ("admin".equals(username) && "password".equals(password)) {
+                // Credentials are correct, switch to admin control scene
+                primaryStage.setScene(createAdminControlScene());
+            } else {
+                // Credentials are incorrect, show an error message
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Incorrect username or password.");
+                alert.setHeaderText(null);
+                alert.showAndWait();
+            }
         });
+
 
         Button backButton = new Button("BACK");
         styleButton(backButton);
@@ -255,28 +287,57 @@ public class BallotCounterGUI extends Application {
     }
 
 
-    private VBox createRightSection() {
-        VBox rightSection = new VBox();
-        rightSection.setAlignment(Pos.CENTER_RIGHT);
-        Label firmwareLabel = new Label("Firmware: 1.2.7");
-        firmwareLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        rightSection.getChildren().add(firmwareLabel);
-        Button loginButton = new Button("Admin Login");
-        loginButton.setOnAction(e -> {
-            Scene loginScene = createLoginScene();
-            primaryStage.setScene(loginScene);
+    private Scene createAdminControlScene() {
+        VBox adminPage = createAdminPage();
+        BorderPane paddedContainer = new BorderPane();
+        paddedContainer.setCenter(adminPage);
+        paddedContainer.setPadding(new Insets(5));
+        paddedContainer.setStyle("-fx-background-color: #25283e;");
+        return new Scene(paddedContainer, 600, 600);
+    }
+
+    private VBox createAdminPage() {
+        VBox adminPage = new VBox(15);
+        adminPage.setAlignment(Pos.CENTER);
+        adminPage.setPadding(new Insets(20));
+        adminPage.setStyle("-fx-background-color: #25283e;");
+
+        // Export Audit Trail Button
+        Button exportAuditTrailButton = new Button("Export Audit Trail");
+        styleButton(exportAuditTrailButton);
+        exportAuditTrailButton.setOnAction(e -> {
+            // TODO: Implement export audit trail functionality
         });
 
-        loginButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white; ");
-        loginButton.setOnMouseEntered(e -> {
-            loginButton.setStyle("-fx-background-color: #161825; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white;");
+        // Export Election Results Button
+        Button exportElectionResultsButton = new Button("Export Election Results");
+        styleButton(exportElectionResultsButton);
+        exportElectionResultsButton.setOnAction(e -> {
+            // TODO: Implement export election results functionality
         });
-        loginButton.setOnMouseExited(e -> {
-            loginButton.setStyle("-fx-background-color: #25283e; -fx-text-fill: white; -fx-font-size: 14px; -fx-border-color: white;");
-        });
-        rightSection.getChildren().add(loginButton);
 
-        return rightSection;
+        // Toggle Switch for Tabulation
+        SwitchButton toggleTabulationSwitch = new SwitchButton();
+        Label toggleLabel = new Label("Tabulation:");
+        toggleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        HBox toggleBox = new HBox(10, toggleLabel, toggleTabulationSwitch);
+        toggleBox.setAlignment(Pos.CENTER);
+        toggleBox.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+
+        Button backButton = new Button("Back");
+        styleButton(backButton);
+        backButton.setOnAction(e -> {
+            primaryStage.setScene(createMainScene());
+        });
+
+        adminPage.getChildren().addAll(
+                exportAuditTrailButton,
+                exportElectionResultsButton,
+                toggleBox,
+                backButton
+        );
+
+        return adminPage;
     }
 
     private void startClock() {
