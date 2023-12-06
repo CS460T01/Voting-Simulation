@@ -73,7 +73,7 @@ public class VoteFormGUI extends Application {
         buttonBox.getChildren().addAll(prevButton, nextButton, submitButton);
 
         prevButton.setOnAction(e -> {
-            System.out.println("Before Prev Action: " + currentPage);
+            //System.out.println("Before Prev Action: " + currentPage);
 
             if (currentPage == controller.getOffices().size() + 1) {
                 // We are on the submit page and want to go back to the last voting page
@@ -88,12 +88,12 @@ public class VoteFormGUI extends Application {
                 createVotingPage(currentPage);
             }
 
-            System.out.println("After Prev Action: " + currentPage);
+            //System.out.println("After Prev Action: " + currentPage);
             updateButtonVisibility();
         });
 
         nextButton.setOnAction(e -> {
-            System.out.println("Before Next Action: " + currentPage);
+            //System.out.println("Before Next Action: " + currentPage);
 
             if (currentPage <= controller.getOffices().size()) {
                 extractSaveData(controller.getOffices().get(currentPage - 1).getKey());
@@ -113,7 +113,7 @@ public class VoteFormGUI extends Application {
                 }
             }
 
-            System.out.println("After Next Action: " + currentPage);
+            //System.out.println("After Next Action: " + currentPage);
             updateButtonVisibility();
         });
 
@@ -592,7 +592,7 @@ public class VoteFormGUI extends Application {
         }
 
         currentPage = pageIndex + 1; // Update current page index
-        System.out.println("Inside createVotingPage: " + currentPage);
+        //System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility(); // Update the visibility of navigation buttons
 
         // Use PauseTransition to introduce a delay before TTS
