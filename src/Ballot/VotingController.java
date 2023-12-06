@@ -1,6 +1,5 @@
 package Ballot;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -32,7 +31,6 @@ public class VotingController {
         offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList(
                  "Tim Keller (Democrat)", "Jehiel Luciana (Independent)", "Džejlana Avedis (Republican)"
         )));
-        // Add more offices and candidates with party information as needed
     }
 
 
@@ -74,33 +72,52 @@ public class VotingController {
             System.out.println(position + ": " + positionResult.getVoterChoice());
         }
 
-        Random random = new Random();
-        String ballotFolderPath = "src/Ballots/";
-        String ballotName;
-        String ballotFileName;
+        // Wrap the results in a new map with "positions" key
+        Map<String, Object> wrappedResults = new HashMap<>();
+        wrappedResults.put("positions", ballotResult.getResults());
 
-        //checking for duplicate names
-        while (true) {
-            ballotName = String.format("%010d", random.nextInt(1000000000));
-
-            ballotFileName = ballotFolderPath + "Ballot_" + ballotName + ".json";
-
-            // Check if a file with this name already exists
-            if (!new File(ballotFileName).exists()) {
-                break; // Unique file name found, break out of the loop
-            }
-        }
-
-        // Convert the results object to a JSON string
+        // Convert the wrapped results object to a JSON string
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(ballotResult.getResults());
+        String json = gson.toJson(wrappedResults);
 
         // Save the JSON string to a file
-        try (FileWriter file = new FileWriter(ballotFileName)) {
+        try (FileWriter file = new FileWriter("votingResults.json")) {
             file.write(json);
-            System.out.println("Results saved to " + ballotFileName);
+            System.out.println("Results saved to votingResults.json");
         } catch (IOException e) {
             System.out.println("An error occurred while saving the results to a file.");
+            e.printStackTrace();
+        }
+    }
+
+    public void createEmptyBallot() {
+        BallotResult ballotResult = new BallotResult();
+
+        for (Map.Entry<String, List<String>> officeEntry : offices) {
+            String position = officeEntry.getKey();
+            List<String> candidatesList = officeEntry.getValue();
+
+            PositionResult positionResult = new PositionResult();
+            positionResult.setCandidates(candidatesList);
+            positionResult.setVoterChoice("");
+
+            ballotResult.addResult(position, positionResult);
+        }
+
+        // Wrap the results in a new map with "positions" key
+        Map<String, Object> wrappedResults = new HashMap<>();
+        wrappedResults.put("positions", ballotResult.getResults());
+
+        // Convert the wrapped results object to a JSON string
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(wrappedResults);
+
+        // Save the JSON string to a file
+        try (FileWriter file = new FileWriter("emptyBallot.json")) {
+            file.write(json);
+            System.out.println("Empty ballot saved to emptyBallot.json");
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving the empty ballot to a file.");
             e.printStackTrace();
         }
     }
