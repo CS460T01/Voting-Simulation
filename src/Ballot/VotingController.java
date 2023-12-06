@@ -1,5 +1,6 @@
 package Ballot;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -70,7 +71,25 @@ public class VotingController {
 
             // Print the voting result for the current position
             System.out.println(position + ": " + positionResult.getVoterChoice());
+   
+        Random random = new Random();
+        String ballotFolderPath = "src/Ballots/";
+        String ballotName;
+        String ballotFileName;
+
+        //checking for duplicate names
+        while (true) {
+            ballotName = String.format("%010d", random.nextInt(1000000000));
+
+            ballotFileName = ballotFolderPath + "Ballot_" + ballotName + ".json";
+
+            // Check if a file with this name already exists
+            if (!new File(ballotFileName).exists()) {
+                break; // Unique file name found, break out of the loop
+            }
         }
+
+        // Convert the results object to a JSON string
 
         // Wrap the results in a new map with "positions" key
         Map<String, Object> wrappedResults = new HashMap<>();
@@ -81,9 +100,9 @@ public class VotingController {
         String json = gson.toJson(wrappedResults);
 
         // Save the JSON string to a file
-        try (FileWriter file = new FileWriter("votingResults.json")) {
+        try (FileWriter file = new FileWriter(ballotFileName)) {
             file.write(json);
-            System.out.println("Results saved to votingResults.json");
+            System.out.println("Results saved to " + ballotFileName);
         } catch (IOException e) {
             System.out.println("An error occurred while saving the results to a file.");
             e.printStackTrace();
