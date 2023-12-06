@@ -32,7 +32,6 @@ public class VotingController {
         offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList(
                  "Tim Keller (Democrat)", "Jehiel Luciana (Independent)", "Džejlana Avedis (Republican)"
         )));
-        // Add more offices and candidates with party information as needed
     }
 
 
@@ -72,8 +71,7 @@ public class VotingController {
 
             // Print the voting result for the current position
             System.out.println(position + ": " + positionResult.getVoterChoice());
-        }
-
+   
         Random random = new Random();
         String ballotFolderPath = "src/Ballots/";
         String ballotName;
@@ -92,8 +90,14 @@ public class VotingController {
         }
 
         // Convert the results object to a JSON string
+
+        // Wrap the results in a new map with "positions" key
+        Map<String, Object> wrappedResults = new HashMap<>();
+        wrappedResults.put("positions", ballotResult.getResults());
+
+        // Convert the wrapped results object to a JSON string
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(ballotResult.getResults());
+        String json = gson.toJson(wrappedResults);
 
         // Save the JSON string to a file
         try (FileWriter file = new FileWriter(ballotFileName)) {
@@ -101,6 +105,38 @@ public class VotingController {
             System.out.println("Results saved to " + ballotFileName);
         } catch (IOException e) {
             System.out.println("An error occurred while saving the results to a file.");
+            e.printStackTrace();
+        }
+    }
+
+    public void createEmptyBallot() {
+        BallotResult ballotResult = new BallotResult();
+
+        for (Map.Entry<String, List<String>> officeEntry : offices) {
+            String position = officeEntry.getKey();
+            List<String> candidatesList = officeEntry.getValue();
+
+            PositionResult positionResult = new PositionResult();
+            positionResult.setCandidates(candidatesList);
+            positionResult.setVoterChoice("");
+
+            ballotResult.addResult(position, positionResult);
+        }
+
+        // Wrap the results in a new map with "positions" key
+        Map<String, Object> wrappedResults = new HashMap<>();
+        wrappedResults.put("positions", ballotResult.getResults());
+
+        // Convert the wrapped results object to a JSON string
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(wrappedResults);
+
+        // Save the JSON string to a file
+        try (FileWriter file = new FileWriter("emptyBallot.json")) {
+            file.write(json);
+            System.out.println("Empty ballot saved to emptyBallot.json");
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving the empty ballot to a file.");
             e.printStackTrace();
         }
     }

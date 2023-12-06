@@ -1,5 +1,7 @@
 package Registration;
 
+import Ballot.VoteFormGUI;
+import Ballot.VotingController;
 import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -19,27 +21,31 @@ import java.time.format.DateTimeParseException;
 
 public class CheckInGUI extends Application {
 
+    private Stage primaryStage;
+
     private Register register;
     private TextField firstNameTextField;
     private TextField lastNameTextField;
     private TextField addressTextField;
     private TextField ssnTextField;
     private TextField dobTextField;
+    private CheckBox adaBallotCheckBox;
     private Text actionTarget;
 
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/DD/YYYY");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         register = new Register();
-        primaryStage.setTitle("Registration.Voter Check-In");
+        primaryStage.setTitle("Voter Check-In");
         primaryStage.setResizable(false);
 
         GridPane grid = createGridPane();
         addUIControls(grid);
 
         Button btnCheckIn = createCheckInButton();
-        grid.add(btnCheckIn, 0, 6);
+        grid.add(btnCheckIn, 0, 7);
         btnCheckIn.setOnAction(e -> handleCheckInAction());
 
         Scene scene = new Scene(grid, 500, 475);
@@ -59,7 +65,7 @@ public class CheckInGUI extends Application {
     }
 
     private void addUIControls(GridPane grid) {
-        Text header = new Text("Registration.Voter Check-In");
+        Text header = new Text("Voter Check-In");
         header.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         header.setFill(Color.DARKBLUE);
         GridPane.setColumnSpan(header, 2);
@@ -92,11 +98,16 @@ public class CheckInGUI extends Application {
         dobTextField.setPromptText("MM/DD/YYYY");
         grid.add(dobTextField, 1, 5);
 
+        Label adaBallotLabel = new Label("ADA Ballot:");
+        grid.add(adaBallotLabel, 0, 6);
+        adaBallotCheckBox = new CheckBox();
+        grid.add(adaBallotCheckBox, 1, 6);
+
         actionTarget = new Text();
         GridPane.setColumnSpan(actionTarget, 2);
         GridPane.setHalignment(actionTarget, HPos.CENTER);
         actionTarget.setFill(Color.FIREBRICK);
-        grid.add(actionTarget, 0, 7);
+        grid.add(actionTarget, 0, 8);
     }
 
     private Button createCheckInButton() {
@@ -117,9 +128,38 @@ public class CheckInGUI extends Application {
 
         if (areFieldsValid(firstName, lastName, address, ssnLast4, dobString)) {
             LocalDate dob = parseDateOfBirth(dobString);
-            if (dob != null) {
-                processCheckIn(firstName, lastName, address, ssnLast4, dob);
+            boolean processSuccessful = processCheckIn(firstName, lastName, address, ssnLast4, dob);
+            if (processSuccessful && adaBallotCheckBox.isSelected()) {
+
+                actionTarget.setFill(Color.GREEN);
+                actionTarget.setText("Check-in successful! Opening ADA Ballot...");
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(2000);
+                        javafx.application.Platform.runLater(() -> {
+                            openVoteFormGUI();
+                            primaryStage.close();
+                        });
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+            } else if (processSuccessful) {
+                System.out.println("Printing ballot...");
+                VotingController votingController = new VotingController();
+                votingController.createEmptyBallot();
             }
+        }
+    }
+
+    private void openVoteFormGUI() {
+        try {
+            VoteFormGUI voteFormGUI = new VoteFormGUI();
+            Stage voteStage = new Stage();
+            voteFormGUI.start(voteStage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            actionTarget.setText("Error opening ADA Ballot.");
         }
     }
 
@@ -140,17 +180,20 @@ public class CheckInGUI extends Application {
         }
     }
 
-    private void processCheckIn(String firstName, String lastName, String address, String ssnLast4, LocalDate dob) {
+    private boolean processCheckIn(String firstName, String lastName, String address, String ssnLast4, LocalDate dob) {
         String voterID = createVoterID(firstName, lastName, ssnLast4, dob);
         if (register.isRegistered(voterID)) {
             if (register.checkInVoter(firstName, lastName, ssnLast4, address, dob)) {
                 actionTarget.setFill(Color.GREEN);
-                actionTarget.setText("Check-in successful!");
+                actionTarget.setText("Check-in successful! Your ballot has been created.");
+                return true;
             } else {
-                actionTarget.setText("Check-in failed: Registration.Voter has already voted.");
+                actionTarget.setText("Check-in failed: Voter has already voted.");
+                return false;
             }
         } else {
-            actionTarget.setText("Check-in failed: Registration.Voter not found.");
+            actionTarget.setText("Check-in failed: Voter not found.");
+            return false;
         }
     }
 
