@@ -5,27 +5,57 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
 public class BallotCounterController {
     private static final String DATA_FILE_PATH = "data/Tabulator/vote_data.json";
+    private static final String COUNTED_BALLOTS_DIR = "data/CountedBallots";
 
     private Map<String, Map<String, Integer>> voteCounts = new HashMap<>();
     private int totalBallotsProcessed = 0;
 
+    public BallotCounterController() {
+        File countedBallotsDir = new File(COUNTED_BALLOTS_DIR);
+        if (!countedBallotsDir.exists()) {
+            countedBallotsDir.mkdirs();
+        }
+    }
+
     public void processBallotFile(File ballotFile) {
         Gson gson = new Gson();
         String filePath = ballotFile.getAbsolutePath();
+        Ballot ballot = null;
+
         try (FileReader reader = new FileReader(filePath)) {
-            Ballot ballot = gson.fromJson(reader, Ballot.class);
-            updateVoteCounts(ballot);
-            saveState();
-            printCurrentVoteCounts();
+            ballot = gson.fromJson(reader, Ballot.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        if (ballot != null) {
+            updateVoteCounts(ballot);
+            saveState();
+            printCurrentVoteCounts();
+        }
+
+        moveBallotFile(ballotFile);
     }
+
+    private void moveBallotFile(File ballotFile) {
+        try {
+            File destFile = new File(COUNTED_BALLOTS_DIR + File.separator + ballotFile.getName());
+            Files.move(ballotFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Moved ballot file to: " + destFile.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to move ballot file: " + ballotFile.getName());
+        }
+    }
+
+
 
     private void updateVoteCounts(Ballot ballot) {
         if (ballot.getPositions() != null) {
