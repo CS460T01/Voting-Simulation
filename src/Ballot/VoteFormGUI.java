@@ -538,7 +538,7 @@ public class VoteFormGUI extends Application {
         //System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility(); // Update the visibility of navigation buttons
         currentPage = pageIndex + 1;
-        System.out.println("Inside createVotingPage: " + currentPage);
+        //System.out.println("Inside createVotingPage: " + currentPage);
         updateButtonVisibility();
 
         PauseTransition pauseTransition = new PauseTransition(Duration.seconds(0.2));
