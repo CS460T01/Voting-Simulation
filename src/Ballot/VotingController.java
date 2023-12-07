@@ -74,7 +74,7 @@ public class VotingController {
         }
 
         Random random = new Random();
-        String ballotFolderPath = "src/Ballots/";
+        String ballotFolderPath = "data/Ballots/";
         String ballotName;
         String ballotFileName;
 

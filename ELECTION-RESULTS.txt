@@ -1,0 +1,12 @@
+[Governor]
+Michelle Lujan Grisham : 5
+ : 3
+
+[President]
+Joe Biden : 5
+ : 3
+
+[Mayor]
+Tim Keller : 5
+ : 3
+
