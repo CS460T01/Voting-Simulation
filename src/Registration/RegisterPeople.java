@@ -12,6 +12,10 @@ public class RegisterPeople {
         Voter voter3 = new Voter("Jim Brown", "789 Oak St", LocalDate.of(1975, 3, 5), "1011");
         Voter voter4 = new Voter("A B", "1", LocalDate.of(2001, 1, 1), "0000");
         Voter voter5 = new Voter("A A", "1", LocalDate.of(2001, 1, 1), "0000");
+        Voter voter6 = new Voter("A C", "1", LocalDate.of(2001, 1, 1), "0000");
+        Voter voter7 = new Voter("A D", "1", LocalDate.of(2001, 1, 1), "0000");
+        Voter voter8 = new Voter("A E", "1", LocalDate.of(2001, 1, 1), "0000");
+        Voter voter9 = new Voter("A F", "1", LocalDate.of(2001, 1, 1), "0000");
 
         System.out.println("Registering voters...");
         register.registerVoter(voter1);
@@ -19,5 +23,10 @@ public class RegisterPeople {
         register.registerVoter(voter3);
         register.registerVoter(voter4);
         register.registerVoter(voter5);
+        register.registerVoter(voter6);
+        register.registerVoter(voter7);
+        register.registerVoter(voter8);
+        register.registerVoter(voter9);
+
     }
 }

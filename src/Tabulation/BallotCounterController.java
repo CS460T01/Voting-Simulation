@@ -6,13 +6,19 @@ import com.google.gson.reflect.TypeToken;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.File;
+import java.util.stream.Stream;
+
 
 public class BallotCounterController {
     private static final String DATA_FILE_PATH = "data/Tabulator/vote_data.json";
     private static final String COUNTED_BALLOTS_DIR = "data/CountedBallots";
+    private static final String ABSENTEE_BALLOTS_DIR = "data/AbsenteeBallots";
 
     private Map<String, Map<String, Integer>> voteCounts = new HashMap<>();
     private int totalBallotsProcessed = 0;
@@ -21,6 +27,17 @@ public class BallotCounterController {
         File countedBallotsDir = new File(COUNTED_BALLOTS_DIR);
         if (!countedBallotsDir.exists()) {
             countedBallotsDir.mkdirs();
+        }
+        processAbsenteeBallots();
+    }
+
+    private void processAbsenteeBallots() {
+        try (Stream<Path> paths = Files.walk(Paths.get(ABSENTEE_BALLOTS_DIR))) {
+            paths.filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".json"))
+                    .forEach(path -> processBallotFile(path.toFile()));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
