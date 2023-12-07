@@ -2,10 +2,8 @@ package Tabulation;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,9 +13,6 @@ public class BallotCounterController {
 
     private Map<String, Map<String, Integer>> voteCounts = new HashMap<>();
     private int totalBallotsProcessed = 0;
-
-    public BallotCounterController() {
-    }
 
     public void processBallotFile(File ballotFile) {
         Gson gson = new Gson();
@@ -42,6 +37,29 @@ public class BallotCounterController {
             totalBallotsProcessed++;
         }
     }
+
+    public void exportElectionResults() {
+        String fileName = "ELECTION-RESULTS.txt";
+        String projectDirectory = System.getProperty("user.dir");
+        String filePath = projectDirectory + File.separator + fileName;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (Map.Entry<String, Map<String, Integer>> positionEntry : voteCounts.entrySet()) {
+                String position = positionEntry.getKey();
+                writer.write("[" + position + "]\n");
+                Map<String, Integer> counts = positionEntry.getValue();
+                for (Map.Entry<String, Integer> candidateEntry : counts.entrySet()) {
+                    String line = candidateEntry.getKey() + " : " + candidateEntry.getValue() + "\n";
+                    writer.write(line);
+                }
+                writer.write("\n");
+            }
+            System.out.println("Election results exported to " + filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void saveState() {
         Gson gson = new Gson();

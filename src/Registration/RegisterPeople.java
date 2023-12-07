@@ -2,7 +2,7 @@ package Registration;
 
 import java.time.LocalDate;
 
-public class TestRegistration {
+public class RegisterPeople {
 
     public static void main(String[] args) {
         Register register = new Register();

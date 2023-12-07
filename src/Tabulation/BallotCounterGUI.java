@@ -308,15 +308,13 @@ public class BallotCounterGUI extends Application {
         Button exportAuditTrailButton = new Button("Export Audit Trail");
         styleButton(exportAuditTrailButton);
         exportAuditTrailButton.setMinWidth(200);
+
         Button exportElectionResultsButton = new Button("Export Election Results");
         styleButton(exportElectionResultsButton);
         exportElectionResultsButton.setMinWidth(200);
-
-        SwitchButton toggleTabulationSwitch = new SwitchButton();
-        Label toggleLabel = new Label("Tabulation:");
-        toggleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        HBox toggleBox = new HBox(10, toggleLabel, toggleTabulationSwitch);
-        toggleBox.setAlignment(Pos.CENTER);
+        exportElectionResultsButton.setOnAction(e -> {
+            controller.exportElectionResults();
+        });
 
         Button backButton = new Button("LOG OUT");
         styleButton(backButton);
@@ -329,7 +327,6 @@ public class BallotCounterGUI extends Application {
                 headerLabel,
                 exportAuditTrailButton,
                 exportElectionResultsButton,
-                toggleBox,
                 backButton
         );
 
