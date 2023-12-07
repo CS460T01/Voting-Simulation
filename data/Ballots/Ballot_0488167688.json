@@ -5,14 +5,14 @@
         "Joe Biden (Democrat)",
         "Donald Trump (Republican)"
       ],
-      "voterChoice": "Joe Biden"
+      "voterChoice": "Donald Trump"
     },
     "Governor": {
       "candidates": [
         "Michelle Lujan Grisham (Democrat)",
         "Susana Martinez (Republican)"
       ],
-      "voterChoice": "Michelle Lujan Grisham"
+      "voterChoice": "Susana Martinez"
     },
     "Mayor": {
       "candidates": [
@@ -20,7 +20,7 @@
         "Jehiel Luciana (Independent)",
         "Džejlana Avedis (Republican)"
       ],
-      "voterChoice": "Tim Keller"
+      "voterChoice": "Džejlana Avedis"
     }
   }
 }

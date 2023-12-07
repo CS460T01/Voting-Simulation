@@ -48,7 +48,6 @@ public class VotingController {
     }
 
 
-    // Method to get candidates for a position
     public String getCandidatesForPosition(String position) {
 
         return selections.get(position);
@@ -69,32 +68,29 @@ public class VotingController {
 
             ballotResult.addResult(position, positionResult);
 
-            // Print the voting result for the current position
             System.out.println(position + ": " + positionResult.getVoterChoice());
         }
 
         Random random = new Random();
-        String ballotFolderPath = "src/Ballots/";
+        String ballotFolderPath = "data/Ballots/";
         String ballotName;
         String ballotFileName;
 
-        //checking for duplicate names
         while (true) {
             ballotName = String.format("%010d", random.nextInt(1000000000));
-
             ballotFileName = ballotFolderPath + "Ballot_" + ballotName + ".json";
 
-            // Check if a file with this name already exists
             if (!new File(ballotFileName).exists()) {
-                break; // Unique file name found, break out of the loop
+                break;
             }
         }
 
-        // Convert the results object to a JSON string
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(ballotResult.getResults());
+        Map<String, Object> wrappedResults = new HashMap<>();
+        wrappedResults.put("positions", ballotResult.getResults());
 
-        // Save the JSON string to a file
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(wrappedResults);
+
         try (FileWriter file = new FileWriter(ballotFileName)) {
             file.write(json);
             System.out.println("Results saved to " + ballotFileName);
