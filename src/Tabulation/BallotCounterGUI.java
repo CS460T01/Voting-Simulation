@@ -305,10 +305,6 @@ public class BallotCounterGUI extends Application {
         headerLabel.setAlignment(Pos.CENTER);
         headerLabel.setPadding(new Insets(0, 0, 20, 0));
 
-        Button exportAuditTrailButton = new Button("Export Audit Trail");
-        styleButton(exportAuditTrailButton);
-        exportAuditTrailButton.setMinWidth(200);
-
         Button exportElectionResultsButton = new Button("Export Election Results");
         styleButton(exportElectionResultsButton);
         exportElectionResultsButton.setMinWidth(200);
@@ -325,7 +321,6 @@ public class BallotCounterGUI extends Application {
 
         adminPage.getChildren().addAll(
                 headerLabel,
-                exportAuditTrailButton,
                 exportElectionResultsButton,
                 backButton
         );
