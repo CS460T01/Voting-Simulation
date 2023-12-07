@@ -5,7 +5,7 @@
         "Joe Biden (Democrat)",
         "Donald Trump (Republican)"
       ],
-      "voterChoice": "Donald Trump"
+      "voterChoice": "Joe Biden"
     },
     "Governor": {
       "candidates": [
@@ -20,7 +20,7 @@
         "Jehiel Luciana (Independent)",
         "Džejlana Avedis (Republican)"
       ],
-      "voterChoice": "Džejlana Avedis"
+      "voterChoice": "Jehiel Luciana"
     }
   }
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.UUID;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -71,19 +72,9 @@ public class VotingController {
             System.out.println(position + ": " + positionResult.getVoterChoice());
         }
 
-        Random random = new Random();
+        String ballotName = "Ballot_" + UUID.randomUUID().toString() + ".json";
         String ballotFolderPath = "data/Ballots/";
-        String ballotName;
-        String ballotFileName;
-
-        while (true) {
-            ballotName = String.format("%010d", random.nextInt(1000000000));
-            ballotFileName = ballotFolderPath + "Ballot_" + ballotName + ".json";
-
-            if (!new File(ballotFileName).exists()) {
-                break;
-            }
-        }
+        String ballotFileName = ballotFolderPath + ballotName;
 
         Map<String, Object> wrappedResults = new HashMap<>();
         wrappedResults.put("positions", ballotResult.getResults());
@@ -114,6 +105,8 @@ public class VotingController {
             ballotResult.addResult(position, positionResult);
         }
 
+        String emptyBallotName = "Ballot_" + UUID.randomUUID().toString() + ".json";
+
         // Wrap the results in a new map with "positions" key
         Map<String, Object> wrappedResults = new HashMap<>();
         wrappedResults.put("positions", ballotResult.getResults());
@@ -123,9 +116,9 @@ public class VotingController {
         String json = gson.toJson(wrappedResults);
 
         // Save the JSON string to a file
-        try (FileWriter file = new FileWriter("emptyBallot.json")) {
+        try (FileWriter file = new FileWriter(emptyBallotName)) {
             file.write(json);
-            System.out.println("Empty ballot saved to emptyBallot.json");
+            System.out.println("Empty ballot saved to " + emptyBallotName);
         } catch (IOException e) {
             System.out.println("An error occurred while saving the empty ballot to a file.");
             e.printStackTrace();
