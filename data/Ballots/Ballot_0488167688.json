@@ -1,0 +1,26 @@
+{
+  "positions": {
+    "President": {
+      "candidates": [
+        "Joe Biden (Democrat)",
+        "Donald Trump (Republican)"
+      ],
+      "voterChoice": "Donald Trump"
+    },
+    "Governor": {
+      "candidates": [
+        "Michelle Lujan Grisham (Democrat)",
+        "Susana Martinez (Republican)"
+      ],
+      "voterChoice": "Susana Martinez"
+    },
+    "Mayor": {
+      "candidates": [
+        "Tim Keller (Democrat)",
+        "Jehiel Luciana (Independent)",
+        "Džejlana Avedis (Republican)"
+      ],
+      "voterChoice": "Džejlana Avedis"
+    }
+  }
+}
