@@ -27,10 +27,10 @@ public class VotingController {
                 "Joe Biden (Democrat)", "Donald Trump (Republican)"
         )));
         offices.add(new AbstractMap.SimpleEntry<>("Governor", Arrays.asList(
-                 "Michelle Lujan Grisham (Democrat)", "Susana Martinez (Republican)"
+                "Michelle Lujan Grisham (Democrat)", "Susana Martinez (Republican)"
         )));
         offices.add(new AbstractMap.SimpleEntry<>("Mayor", Arrays.asList(
-                 "Tim Keller (Democrat)", "Jehiel Luciana (Independent)", "Džejlana Avedis (Republican)"
+                "Tim Keller (Democrat)", "Jehiel Luciana (Independent)", "Džejlana Avedis (Republican)"
         )));
     }
 
@@ -71,7 +71,8 @@ public class VotingController {
 
             // Print the voting result for the current position
             System.out.println(position + ": " + positionResult.getVoterChoice());
-   
+        }
+
         Random random = new Random();
         String ballotFolderPath = "src/Ballots/";
         String ballotName;
@@ -90,14 +91,8 @@ public class VotingController {
         }
 
         // Convert the results object to a JSON string
-
-        // Wrap the results in a new map with "positions" key
-        Map<String, Object> wrappedResults = new HashMap<>();
-        wrappedResults.put("positions", ballotResult.getResults());
-
-        // Convert the wrapped results object to a JSON string
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(wrappedResults);
+        String json = gson.toJson(ballotResult.getResults());
 
         // Save the JSON string to a file
         try (FileWriter file = new FileWriter(ballotFileName)) {
